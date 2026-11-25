@@ -6,7 +6,6 @@
     <ResourceDictionary>
       <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="avares://RoseTrap/Theme/Colors.axaml" />
-        <ResourceInclude Source="avares://RoseTrap/Theme/Icons.axaml" />
         <ResourceInclude Source="avares://RoseTrap/Theme/AppIcon.axaml" />
       </ResourceDictionary.MergedDictionaries>
     </ResourceDictionary>

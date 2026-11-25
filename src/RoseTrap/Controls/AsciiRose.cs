@@ -66,19 +66,40 @@ public sealed class AsciiRose : Control
         e.Pointer.Capture(null);
     }
 
+    bool _attached, _active = true;
+
+    /// <summary>True while the animation loop is running (attached and not paused).</summary>
+    public bool IsRunning => _running;
+
+    /// <summary>Pauses the loop while the welcome page is hidden: zero cost off-screen.</summary>
+    public bool IsActive
+    {
+        get => _active;
+        set { _active = value; UpdateLoop(); }
+    }
+
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
-        _running = true;
-        _last = null;
-        TopLevel.GetTopLevel(this)?.RequestAnimationFrame(Tick);
+        _attached = true;
+        UpdateLoop();
     }
 
-    // Leaving the welcome page detaches the rose, which stops the loop: zero cost while hidden.
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
-        _running = false;
+        _attached = false;
+        UpdateLoop();
         base.OnDetachedFromVisualTree(e);
+    }
+
+    void UpdateLoop()
+    {
+        bool run = _attached && _active;
+        if (run == _running) return;
+        _running = run;
+        if (!run) return;
+        _last = null;
+        TopLevel.GetTopLevel(this)?.RequestAnimationFrame(Tick);
     }
 
     void Tick(TimeSpan now)

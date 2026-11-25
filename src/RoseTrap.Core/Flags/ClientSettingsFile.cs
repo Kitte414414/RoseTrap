@@ -84,7 +84,7 @@ public static class ClientSettingsFile
         {
             var bak = path + BackupSuffix;
             if (!File.Exists(bak)) continue;
-            File.Copy(bak, path, overwrite: true);
+            FileUtil.CopyOver(bak, path);
             File.Delete(bak);
             restored++;
         }

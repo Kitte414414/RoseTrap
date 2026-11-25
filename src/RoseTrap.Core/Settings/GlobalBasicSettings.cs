@@ -28,9 +28,7 @@ public static class GlobalBasicSettings
         var quality = Flags.FlagComposer.Effective(g).Quality;
         Set(props, "token", "SavedQualityLevel", Math.Clamp(quality, 0, 10));
 
-        var tmp = path + ".tmp";
-        doc.Save(tmp, SaveOptions.DisableFormatting);
-        File.Move(tmp, path, overwrite: true);
+        FileUtil.WriteAtomic(path, doc.Declaration + doc.ToString(SaveOptions.DisableFormatting));
         return true;
     }
 

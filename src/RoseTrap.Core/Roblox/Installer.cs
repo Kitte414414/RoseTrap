@@ -63,7 +63,7 @@ public sealed class Installer(HttpClient http, AppPaths paths)
 
         // Extract into a staging folder and swap it in at the end, so a failed update never breaks the old one.
         var staging = dir + ".partial";
-        if (Directory.Exists(staging)) Directory.Delete(staging, recursive: true);
+        if (Directory.Exists(staging)) FileUtil.Retry(() => Directory.Delete(staging, recursive: true));
         Directory.CreateDirectory(staging);
         Directory.CreateDirectory(paths.Downloads);
 
@@ -83,8 +83,8 @@ public sealed class Installer(HttpClient http, AppPaths paths)
         }));
 
         await File.WriteAllTextAsync(Path.Combine(staging, "AppSettings.xml"), AppSettingsXml, ct);
-        if (Directory.Exists(dir)) Directory.Delete(dir, recursive: true);
-        Directory.Move(staging, dir);
+        if (Directory.Exists(dir)) FileUtil.Retry(() => Directory.Delete(dir, recursive: true));
+        FileUtil.Retry(() => Directory.Move(staging, dir));
         progress?.Report(new("Ready", 1));
     }
 
@@ -128,7 +128,8 @@ public sealed class Installer(HttpClient http, AppPaths paths)
             var target = Path.GetFullPath(Path.Combine(root, entry.FullName.Replace('\\', '/')));
             if (!target.StartsWith(root, StringComparison.Ordinal)) continue; // zip-slip guard
             Directory.CreateDirectory(Path.GetDirectoryName(target)!);
-            entry.ExtractToFile(target, overwrite: true);
+            FileUtil.Unlock(target);
+            FileUtil.Retry(() => entry.ExtractToFile(target, overwrite: true));
         }
     }
 

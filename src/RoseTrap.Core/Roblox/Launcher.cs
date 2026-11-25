@@ -29,14 +29,29 @@ public sealed class Launcher(Installer installer, AppPaths paths)
     {
         var install = await installer.EnsureLatestAsync(s.Launcher.Channel, progress, ct);
 
+        // A settings file we can't write must not stop the game from starting: report it instead.
+        var warnings = new List<string>();
         ApplyResult? flags = null;
         IReadOnlyList<string> skipped = [];
         if (s.Flags.ApplyOnLaunch)
         {
-            flags = ApplySettings(s, install, out var plan);
-            skipped = plan.Skipped;
+            try
+            {
+                flags = ApplySettings(s, install, out var plan);
+                skipped = plan.Skipped;
+            }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+            {
+                warnings.Add($"Fast flags weren't saved: {e.Message}");
+            }
         }
-        var gbs = GlobalBasicSettings.Apply(paths.GlobalBasicSettings, s.Graphics);
+
+        bool gbs = false;
+        try { gbs = GlobalBasicSettings.Apply(paths.GlobalBasicSettings, s.Graphics); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Xml.XmlException)
+        {
+            warnings.Add($"FPS cap wasn't saved: {e.Message}");
+        }
 
         if (s.Launcher.MultiInstance && OperatingSystem.IsWindows())
             _multiInstance ??= new Mutex(initiallyOwned: true, RobloxSingletonMutex);
@@ -51,7 +66,7 @@ public sealed class Launcher(Installer installer, AppPaths paths)
             UseShellExecute = false,
         })?.Dispose();
 
-        return new LaunchResult(install, flags, skipped, gbs);
+        return new LaunchResult(install, flags, skipped, gbs) { Warnings = warnings };
     }
 
     /// <summary>True while RoseTrap must stay open to keep multi-instance working.</summary>

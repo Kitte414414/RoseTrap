@@ -6,22 +6,19 @@
              x:DataType="vm:MainViewModel">
   <ScrollViewer>
     <StackPanel Margin="24,22,24,30" Spacing="14">
-      <StackPanel Classes="stagger">
-        <TextBlock Classes="eyebrow" Text="03 · GLOBAL" />
+      <StackPanel>
         <TextBlock Classes="h2" Text="Global" />
         <TextBlock Classes="sub" Text="Rendering options applied to every game." />
       </StackPanel>
-      <Border Classes="divider stagger" />
 
-      <Border Classes="callout stagger" IsVisible="{Binding Potato}">
+      <Border Classes="callout" IsVisible="{Binding Potato}">
         <TextBlock Classes="hint" Margin="0" Foreground="{DynamicResource AccentBright}"
                    Text="Potato mode is on: it overrides the options it controls. Turn it off on the General page to edit them." />
       </Border>
 
-      <Border Classes="panel stagger">
+      <Border Classes="panel">
         <StackPanel>
-          <Border Classes="panel-glow" />
-          <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Renderer" /></StackPanel>
+          <TextBlock Classes="h3" Text="Renderer" />
           <TextBlock Classes="sub" Text="Graphics backend and anti-aliasing." />
           <Grid Classes="row" ColumnDefinitions="*,Auto">
             <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Rendering API" /><TextBlock Classes="hint" Text="Vulkan is often smoother on newer GPUs." /></StackPanel>
@@ -36,10 +33,9 @@
       </Border>
 
       <Grid ColumnDefinitions="*,14,*">
-        <Border Classes="panel stagger">
+        <Border Classes="panel">
           <StackPanel>
-            <Border Classes="panel-glow" />
-            <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Detail" /></StackPanel>
+            <TextBlock Classes="h3" Text="Detail" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
               <TextBlock Classes="label" Text="Texture quality" VerticalAlignment="Center" />
               <ComboBox Grid.Column="1" SelectedIndex="{Binding Textures}" IsEnabled="{Binding NotPotato}" VerticalAlignment="Center">
@@ -59,10 +55,9 @@
             </Grid>
           </StackPanel>
         </Border>
-        <Border Grid.Column="2" Classes="panel stagger">
+        <Border Grid.Column="2" Classes="panel">
           <StackPanel>
-            <Border Classes="panel-glow" />
-            <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Display" /></StackPanel>
+            <TextBlock Classes="h3" Text="Display" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
               <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Exclusive fullscreen" /><TextBlock Classes="hint" Text="Alt+Enter switches to true fullscreen." /></StackPanel>
               <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding ExclusiveFullscreen}" />

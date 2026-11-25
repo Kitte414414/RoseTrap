@@ -6,7 +6,11 @@ using RoseTrap.ViewModels;
 
 namespace RoseTrap.Views.Pages;
 
-public partial class WelcomePage : UserControl { public WelcomePage() => InitializeComponent(); }
+public partial class WelcomePage : UserControl
+{
+    public WelcomePage() => InitializeComponent();
+    public void SetActive(bool active) => Rose.IsActive = active;
+}
 public partial class GeneralPage : UserControl { public GeneralPage() => InitializeComponent(); }
 public partial class GlobalPage : UserControl { public GlobalPage() => InitializeComponent(); }
 public partial class PresetPage : UserControl { public PresetPage() => InitializeComponent(); }

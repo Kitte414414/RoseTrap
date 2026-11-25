@@ -14,15 +14,12 @@
   <SolidColorBrush x:Key="Faint" Color="#857e83" />
   <SolidColorBrush x:Key="Field" Color="#19191b" />
   <SolidColorBrush x:Key="FieldLine" Color="#323034" />
-  <SolidColorBrush x:Key="PanelLine" Color="#2e2c30" />
+  <SolidColorBrush x:Key="PanelLine" Color="#2c2a2e" />
   <SolidColorBrush x:Key="ItemHover" Color="#2c2a2d" />
   <SolidColorBrush x:Key="Danger" Color="#f2aeb0" />
   <SolidColorBrush x:Key="DangerBg" Color="#33201f" />
   <SolidColorBrush x:Key="DangerLine" Color="#57302f" />
-  <LinearGradientBrush x:Key="PanelBg" StartPoint="0%,0%" EndPoint="0%,100%">
-    <GradientStop Offset="0" Color="#242326" />
-    <GradientStop Offset="0.6" Color="#202022" />
-  </LinearGradientBrush>
+  <SolidColorBrush x:Key="PanelBg" Color="#222124" />
 
   <SolidColorBrush x:Key="Accent" Color="#d99aa9" />
   <SolidColorBrush x:Key="AccentBright" Color="#f3adbd" />

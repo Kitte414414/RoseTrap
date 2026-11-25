@@ -123,7 +123,7 @@ public sealed partial class MainViewModel : ObservableObject
             GraphicsChanged();
             SetPreset(value ? Preset.Potato : Preset.Balanced, apply: false);
             RefreshGraphics();
-            Toast?.Invoke(value ? "Potato mode on 🥔" : "Potato mode off");
+            Toast?.Invoke(value ? "Potato mode on" : "Potato mode off");
         }
     }
     public bool NotPotato => !G.Potato;
@@ -161,7 +161,8 @@ public sealed partial class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(InstallSource));
             SaveNow();
             LaunchStatus = "Roblox started";
-            Toast?.Invoke(r.BasicSettingsWritten ? "Roblox started" : "Roblox started · FPS cap applies after its first run");
+            foreach (var w in r.Warnings) Toast?.Invoke(w);
+            Toast?.Invoke(r.BasicSettingsWritten || r.Warnings.Count > 0 ? "Roblox started" : "Roblox started · FPS cap applies after its first run");
             if (_s.Launcher.CloseAfterLaunch && !_launcher.HoldsMultiInstanceLock) CloseRequested?.Invoke();
         }
         catch (Exception e)
@@ -382,8 +383,12 @@ public sealed partial class MainViewModel : ObservableObject
     [RelayCommand]
     void RestoreBackup()
     {
-        var n = ClientSettingsFile.Restore(Targets());
-        Toast?.Invoke(n == 0 ? "No backup to restore" : $"Restored {n} file(s) to how they were before RoseTrap");
+        try
+        {
+            var n = ClientSettingsFile.Restore(Targets());
+            Toast?.Invoke(n == 0 ? "No backup to restore" : $"Restored {n} file(s) to how they were before RoseTrap");
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Toast?.Invoke(e.Message); }
     }
 
     [RelayCommand]
@@ -391,10 +396,14 @@ public sealed partial class MainViewModel : ObservableObject
     {
         var plan = new FlagPlan(new Dictionary<string, string>(),
             new HashSet<string>(FlagComposer.ManagedFlags.Concat(_s.CustomFlags.Select(c => c.Name)).Concat(_s.WrittenCustomFlags)), []);
-        var r = ClientSettingsFile.Apply(plan, Targets());
+        try
+        {
+            var r = ClientSettingsFile.Apply(plan, Targets());
         _s.WrittenCustomFlags.Clear();
         SaveNow();
         Toast?.Invoke($"Removed {r.Removed} RoseTrap flags from Roblox");
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Toast?.Invoke(e.Message); }
     }
 
     public string ClientSettingsFolder => Path.GetDirectoryName(Targets().FirstOrDefault() ?? _paths.GlobalClientSettings)!;

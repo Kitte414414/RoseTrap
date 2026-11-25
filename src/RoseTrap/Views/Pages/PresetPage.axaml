@@ -33,43 +33,41 @@
   </UserControl.Styles>
   <ScrollViewer>
     <StackPanel Margin="24,22,24,30" Spacing="14">
-      <StackPanel Classes="stagger">
-        <TextBlock Classes="eyebrow" Text="06 · PRESET" />
+      <StackPanel>
         <TextBlock Classes="h2" Text="Presets" />
         <TextBlock Classes="sub" Text="One click changes the whole setup. Tweaking any option makes it Custom." />
       </StackPanel>
-      <Border Classes="divider stagger" />
       <UniformGrid Columns="4" Margin="-6,0">
-        <RadioButton Classes="preset stagger" Margin="6" GroupName="preset" IsChecked="{Binding IsPotatoPreset}">
+        <RadioButton Classes="preset" Margin="6" GroupName="preset" IsChecked="{Binding IsPotatoPreset}">
           <StackPanel>
-            <TextBlock Classes="icon" Text="🥔" />
+            <Viewbox Classes="icon"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Potato}" /></Canvas></Viewbox>
             <TextBlock Classes="title" Text="Potato" />
             <TextBlock Classes="hint" Text="Everything off. For old laptops." Height="32" />
             <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Performance" /><ProgressBar Grid.Column="1" Value="100" /></Grid>
             <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Visuals" /><ProgressBar Grid.Column="1" Value="12" /></Grid>
           </StackPanel>
         </RadioButton>
-        <RadioButton Classes="preset stagger" Margin="6" GroupName="preset" IsChecked="{Binding IsBalancedPreset}">
+        <RadioButton Classes="preset" Margin="6" GroupName="preset" IsChecked="{Binding IsBalancedPreset}">
           <StackPanel>
-            <TextBlock Classes="icon" Text="⚖️" />
+            <Viewbox Classes="icon"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Balanced}" /></Canvas></Viewbox>
             <TextBlock Classes="title" Text="Balanced" />
             <TextBlock Classes="hint" Text="Roblox decides. Stable frame rate." Height="32" />
             <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Performance" /><ProgressBar Grid.Column="1" Value="68" /></Grid>
             <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Visuals" /><ProgressBar Grid.Column="1" Value="62" /></Grid>
           </StackPanel>
         </RadioButton>
-        <RadioButton Classes="preset stagger" Margin="6" GroupName="preset" IsChecked="{Binding IsQualityPreset}">
+        <RadioButton Classes="preset" Margin="6" GroupName="preset" IsChecked="{Binding IsQualityPreset}">
           <StackPanel>
-            <TextBlock Classes="icon" Text="✨" />
+            <Viewbox Classes="icon"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Quality}" /></Canvas></Viewbox>
             <TextBlock Classes="title" Text="Quality" />
             <TextBlock Classes="hint" Text="Max detail, 4× MSAA, high textures." Height="32" />
             <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Performance" /><ProgressBar Grid.Column="1" Value="34" /></Grid>
             <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Visuals" /><ProgressBar Grid.Column="1" Value="96" /></Grid>
           </StackPanel>
         </RadioButton>
-        <RadioButton Classes="preset stagger" Margin="6" GroupName="preset" IsChecked="{Binding IsCustomPreset}">
+        <RadioButton Classes="preset" Margin="6" GroupName="preset" IsChecked="{Binding IsCustomPreset}">
           <StackPanel>
-            <TextBlock Classes="icon" Text="🌹" />
+            <Viewbox Classes="icon"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Custom}" /></Canvas></Viewbox>
             <TextBlock Classes="title" Text="Custom" />
             <TextBlock Classes="hint" Text="Your own options and flags." Height="32" />
             <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Performance" /><ProgressBar Grid.Column="1" Value="50" /></Grid>

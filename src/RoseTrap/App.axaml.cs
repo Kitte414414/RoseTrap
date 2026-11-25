@@ -9,7 +9,11 @@ namespace RoseTrap;
 
 public partial class App : Application
 {
-    public override void Initialize() => AvaloniaXamlLoader.Load(this);
+    public override void Initialize()
+    {
+        AvaloniaXamlLoader.Load(this);
+        Theme.Icons.Register(Resources);
+    }
 
     public override void OnFrameworkInitializationCompleted()
     {

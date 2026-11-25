@@ -17,14 +17,10 @@
             </RadialGradientBrush>
           </Ellipse.Fill>
         </Ellipse>
-        <c:AsciiRose Name="Rose" ToolTip.Tip="Drag to spin" />
+        <c:AsciiRose Name="Rose" />
       </Panel>
-      <TextBlock Grid.Row="3" Text="ROSETRAP · CONTROL CENTER" HorizontalAlignment="Center" FontSize="10" LetterSpacing="2.3"
+      <TextBlock Grid.Row="3" Text="Pick a section on the left" HorizontalAlignment="Center" FontSize="12"
                  Foreground="#877b81" />
-    </Grid>
-    <Grid VerticalAlignment="Bottom" Margin="24,0,24,20" ColumnDefinitions="*,Auto">
-      <TextBlock Text="CHOOSE A SECTION TO BEGIN · DRAG THE ROSE" FontSize="9" LetterSpacing="1.1" Foreground="#645d61" />
-      <TextBlock Grid.Column="1" Text="01 / WELCOME" FontSize="9" LetterSpacing="1.1" Foreground="#8a747c" />
     </Grid>
   </Grid>
 </UserControl>

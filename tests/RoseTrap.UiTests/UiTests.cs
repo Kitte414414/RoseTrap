@@ -90,7 +90,7 @@ public class UiTests : IDisposable
 
         w.MouseMove(new Point(30, 200));
         Wait(500);
-        Assert.Equal(178, sidebar.Bounds.Width, 1);
+        Assert.Equal(190, sidebar.Bounds.Width, 1);
         Snap(w, "SidebarHover");
 
         w.MouseMove(new Point(700, 300));
@@ -99,34 +99,54 @@ public class UiTests : IDisposable
 
         vm.CompactSidebar = false; // pinned open
         Wait(400);
-        Assert.Equal(178, sidebar.Bounds.Width, 1);
+        Assert.Equal(190, sidebar.Bounds.Width, 1);
     }
 
     [AvaloniaFact]
-    public void TabSwitchAnimatesAndRoseStopsOffWelcome()
+    public void TabSwitchFadesInAndRoseStopsOffWelcome()
     {
         var (w, _) = Open(animations: true);
         var rose = w.GetLogicalDescendants().OfType<AsciiRose>().Single();
-        Assert.True(rose.IsAttachedToVisualTree());
+        Assert.True(rose.IsRunning);
 
         w.Navigate("General");
-        var panel = w.GetLogicalDescendants().OfType<Border>().First(b => b.Classes.Contains("panel"));
+        var page = w.LoadedPages.Single(p => p.IsVisible);
         double minOpacity = 1;
         bool captured = false;
-        var end = DateTime.UtcNow.AddMilliseconds(1200);
+        var end = DateTime.UtcNow.AddMilliseconds(600);
         while (DateTime.UtcNow < end)
         {
             Pump(1);
-            minOpacity = Math.Min(minOpacity, panel.Opacity);
-            if (!captured && panel.Opacity is > .2 and < .8) { Snap(w, "TransitionMidway"); captured = true; }
-            Thread.Sleep(16);
+            minOpacity = Math.Min(minOpacity, page.Opacity);
+            if (!captured && page.Opacity is > .2 and < .8) { Snap(w, "TransitionMidway"); captured = true; }
+            Thread.Sleep(10);
         }
-        Assert.True(minOpacity < .2, $"panel never faded in (min opacity {minOpacity})");
-        Assert.True(captured);
-        Wait(300);
-        Assert.Equal(1, panel.Opacity, 2);
-        Assert.False(rose.IsAttachedToVisualTree()); // detached = render loop stopped
-        Snap(w, "TransitionDone");
+        Assert.True(minOpacity < .3, $"page never faded in (min opacity {minOpacity})");
+        Assert.Equal(1, page.Opacity, 3);
+        Assert.Null(page.RenderTransform);
+        Assert.False(rose.IsRunning); // paused while the welcome page is hidden
+
+        w.Navigate("Welcome");
+        Assert.True(rose.IsRunning);
+    }
+
+    [AvaloniaFact]
+    public void RapidTabSwitchingLeavesOneCleanPage()
+    {
+        var (w, _) = Open(animations: true);
+        string[] order = ["General", "Global", "FFlags", "General", "Shaders", "Preset", "Global", "Settings"];
+        foreach (var name in order)
+        {
+            w.Navigate(name);
+            Pump(1);
+            Thread.Sleep(30); // far quicker than the 200 ms fade
+        }
+        Wait(400);
+        var visible = w.LoadedPages.Where(p => p.IsVisible).ToList();
+        Assert.Single(visible);
+        Assert.Equal("Settings", w.CurrentPage);
+        Assert.All(w.LoadedPages, p => { Assert.Equal(1, p.Opacity, 3); Assert.Null(p.RenderTransform); });
+        Snap(w, "AfterRapidSwitching");
     }
 
     [AvaloniaFact]

@@ -3,27 +3,22 @@
         xmlns:c="using:RoseTrap.Controls">
 
   <!-- ===== Typography ===== -->
-  <Style Selector="TextBlock.eyebrow">
-    <Setter Property="FontSize" Value="9.5" />
-    <Setter Property="LetterSpacing" Value="1.9" />
-    <Setter Property="Foreground" Value="{DynamicResource Accent}" />
-    <Setter Property="Margin" Value="0,0,0,5" />
-  </Style>
   <Style Selector="TextBlock.h2">
-    <Setter Property="FontSize" Value="19" />
+    <Setter Property="FontSize" Value="20" />
     <Setter Property="FontWeight" Value="SemiBold" />
     <Setter Property="Foreground" Value="{DynamicResource TextStrong}" />
   </Style>
   <Style Selector="TextBlock.h3">
-    <Setter Property="FontSize" Value="12.5" />
+    <Setter Property="FontSize" Value="13" />
     <Setter Property="FontWeight" Value="SemiBold" />
-    <Setter Property="Foreground" Value="#eee6e9" />
+    <Setter Property="Foreground" Value="#ece4e8" />
+    <Setter Property="Margin" Value="0,0,0,2" />
   </Style>
   <Style Selector="TextBlock.sub">
-    <Setter Property="FontSize" Value="11" />
-    <Setter Property="Foreground" Value="#8a8388" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{DynamicResource Muted}" />
     <Setter Property="TextWrapping" Value="Wrap" />
-    <Setter Property="Margin" Value="0,3,0,0" />
+    <Setter Property="Margin" Value="0,4,0,0" />
   </Style>
   <Style Selector="TextBlock.label">
     <Setter Property="FontSize" Value="12.5" />
@@ -49,38 +44,9 @@
     <Setter Property="BorderBrush" Value="{DynamicResource PanelLine}" />
     <Setter Property="BorderThickness" Value="1" />
     <Setter Property="CornerRadius" Value="{StaticResource PanelRadius}" />
-    <Setter Property="Padding" Value="16,15,16,8" />
-    <Setter Property="BoxShadow" Value="0 12 28 -14 #AA000000, inset 0 1 0 0 #07ffffff" />
-    <Setter Property="Transitions">
-      <Transitions>
-        <BrushTransition Property="BorderBrush" Duration="0:0:0.2" />
-      </Transitions>
-    </Setter>
-  </Style>
-  <Style Selector="Border.panel:pointerover">
-    <Setter Property="BorderBrush" Value="#3a363b" />
+    <Setter Property="Padding" Value="18,16,18,6" />
   </Style>
   <!-- The thin accent glow along a panel's top edge. -->
-  <Style Selector="Border.panel-glow">
-    <Setter Property="Height" Value="1" />
-    <Setter Property="VerticalAlignment" Value="Top" />
-    <Setter Property="Margin" Value="-16,-15,-16,0" />
-    <Setter Property="Opacity" Value="0.55" />
-    <Setter Property="Background">
-      <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
-        <GradientStop Offset="0" Color="#00000000" />
-        <GradientStop Offset="0.5" Color="#5Ad99aa9" />
-        <GradientStop Offset="1" Color="#00000000" />
-      </LinearGradientBrush>
-    </Setter>
-  </Style>
-  <Style Selector="Ellipse.dot">
-    <Setter Property="Width" Value="6" />
-    <Setter Property="Height" Value="6" />
-    <Setter Property="Fill" Value="{DynamicResource Accent}" />
-    <Setter Property="Margin" Value="0,0,8,0" />
-    <Setter Property="VerticalAlignment" Value="Center" />
-  </Style>
   <Style Selector="Grid.row">
     <Setter Property="MinHeight" Value="48" />
   </Style>
@@ -89,11 +55,11 @@
     <Setter Property="Background" Value="{DynamicResource RowLine}" />
   </Style>
   <Style Selector="Border.value">
-    <Setter Property="Background" Value="{DynamicResource AccentSoft}" />
-    <Setter Property="BorderBrush" Value="{DynamicResource AccentLine}" />
+    <Setter Property="Background" Value="#1f1e21" />
+    <Setter Property="BorderBrush" Value="{DynamicResource FieldLine}" />
     <Setter Property="BorderThickness" Value="1" />
-    <Setter Property="CornerRadius" Value="20" />
-    <Setter Property="Padding" Value="8,2" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Padding" Value="8,3" />
     <Setter Property="MinWidth" Value="56" />
     <Setter Property="HorizontalAlignment" Value="Right" />
     <Setter Property="VerticalAlignment" Value="Center" />
@@ -178,7 +144,7 @@
     <Setter Property="RenderTransform" Value="translateY(1px) scale(0.98)" />
   </Style>
   <Style Selector="Button.primary">
-    <Setter Property="Background" Value="{DynamicResource AccentGradient}" />
+    <Setter Property="Background" Value="{DynamicResource Accent}" />
     <Setter Property="Foreground" Value="{DynamicResource AccentInk}" />
     <Setter Property="BorderBrush" Value="Transparent" />
     <Setter Property="FontWeight" Value="SemiBold" />
@@ -414,56 +380,17 @@
   </Style>
 
   <!-- ===== Nav ===== -->
-  <Style Selector="Button.nav">
-    <Setter Property="Height" Value="36" />
-    <Setter Property="HorizontalAlignment" Value="Stretch" />
-    <Setter Property="HorizontalContentAlignment" Value="Left" />
-    <Setter Property="Padding" Value="10,0" />
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="BorderBrush" Value="Transparent" />
-    <Setter Property="Foreground" Value="#c9c3c7" />
-    <Setter Property="ClipToBounds" Value="True" />
-  </Style>
-  <Style Selector="Button.nav:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource ItemHover}" />
-    <Setter Property="BorderBrush" Value="Transparent" />
-    <Setter Property="Foreground" Value="#f2e9ed" />
-  </Style>
-  <Style Selector="Button.nav.active /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="Transparent" />
-    <Setter Property="Foreground" Value="#f1dce3" />
-  </Style>
   <Style Selector="Button.nav:pressed">
     <Setter Property="RenderTransform" Value="none" />
   </Style>
-  <Style Selector="Button.nav Path">
-    <Setter Property="Fill" Value="{DynamicResource AccentBright}" />
-    <Setter Property="Stroke" Value="{DynamicResource AccentBright}" />
-    <Setter Property="StrokeThickness" Value="0.42" />
-    <Setter Property="StrokeJoin" Value="Round" />
-  </Style>
-  <Style Selector="Button.nav Viewbox">
-    <Setter Property="RenderTransform" Value="none" />
-    <Setter Property="Transitions">
-      <Transitions>
-        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.3">
-          <TransformOperationsTransition.Easing>
-            <SplineEasing X1="0.34" Y1="1.36" X2="0.64" Y2="1" />
-          </TransformOperationsTransition.Easing>
-        </TransformOperationsTransition>
-      </Transitions>
-    </Setter>
-  </Style>
-  <Style Selector="Button.nav:pointerover Viewbox">
-    <Setter Property="RenderTransform" Value="scale(1.08)" />
-  </Style>
   <Style Selector="Button.nav TextBlock.navlabel">
-    <Setter Property="Margin" Value="11,0,0,0" />
-    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Margin" Value="2,0,0,0" />
+    <Setter Property="FontSize" Value="12.5" />
     <Setter Property="FontWeight" Value="Medium" />
     <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
     <Setter Property="Transitions">
-      <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.18" /></Transitions>
+      <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.15" /></Transitions>
     </Setter>
   </Style>
 
@@ -505,14 +432,14 @@
     </Setter>
   </Style>
   <Style Selector="RadioButton.preset:pointerover">
-    <Setter Property="RenderTransform" Value="translateY(-2px)" />
+    <Setter Property="RenderTransform" Value="none" />
   </Style>
   <Style Selector="RadioButton.preset:pointerover /template/ Border#card">
     <Setter Property="BorderBrush" Value="#433d42" />
   </Style>
   <Style Selector="RadioButton.preset:checked /template/ Border#card">
     <Setter Property="BorderBrush" Value="{DynamicResource Accent}" />
-    <Setter Property="BoxShadow" Value="0 0 0 3 #22d99aa9, 0 14 30 -16 #99d99aa9" />
+    <Setter Property="BoxShadow" Value="0 0 0 1 #00000000" />
   </Style>
   <Style Selector="RadioButton.preset:checked /template/ Border#check">
     <Setter Property="Background" Value="{DynamicResource Accent}" />
@@ -520,6 +447,15 @@
   </Style>
   <Style Selector="RadioButton.preset:checked /template/ Path#tick">
     <Setter Property="Opacity" Value="1" />
+  </Style>
+
+  <Style Selector="RadioButton.preset Viewbox.icon">
+    <Setter Property="Width" Value="22" />
+    <Setter Property="Height" Value="22" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+  </Style>
+  <Style Selector="RadioButton.preset Viewbox.icon Path">
+    <Setter Property="Fill" Value="{DynamicResource AccentBright}" />
   </Style>
 
   <!-- ===== Accent swatches ===== -->

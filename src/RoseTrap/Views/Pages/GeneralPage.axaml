@@ -6,27 +6,24 @@
              x:DataType="vm:MainViewModel">
   <ScrollViewer>
     <StackPanel Margin="24,22,24,30" Spacing="14">
-      <Grid Classes="stagger" ColumnDefinitions="*,Auto">
+      <Grid ColumnDefinitions="*,Auto">
         <StackPanel>
-          <TextBlock Classes="eyebrow" Text="02 · GENERAL" />
           <TextBlock Classes="h2" Text="General" />
           <TextBlock Classes="sub" Text="Frame rate, graphics level and launching." />
         </StackPanel>
         <Button Grid.Column="1" Classes="primary lg" VerticalAlignment="Bottom" Command="{Binding LaunchCommand}" CommandParameter="{x:Null}"
                 IsEnabled="{Binding !IsLaunching}">
           <StackPanel Orientation="Horizontal" Spacing="7">
-            <Path Data="M5 3.5v9l7-4.5z" Fill="{DynamicResource AccentInk}" VerticalAlignment="Center" />
+            <Viewbox Width="12" Height="12" VerticalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Play}" Fill="{DynamicResource AccentInk}" /></Canvas></Viewbox>
             <TextBlock Text="Launch Roblox" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
       </Grid>
-      <Border Classes="divider stagger" />
 
       <Grid ColumnDefinitions="7*,14,5*">
-        <Border Classes="panel stagger">
+        <Border Classes="panel">
           <StackPanel>
-            <Border Classes="panel-glow" />
-            <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Frame rate" /></StackPanel>
+            <TextBlock Classes="h3" Text="Frame rate" />
             <TextBlock Classes="sub" Text="Written to Roblox's own settings, so it works with the fast flag allowlist." />
             <StackPanel Spacing="7" Margin="0,12,0,10">
               <Grid ColumnDefinitions="*,Auto">
@@ -56,12 +53,11 @@
           </StackPanel>
         </Border>
 
-        <Border Grid.Column="2" Classes="panel stagger">
+        <Border Grid.Column="2" Classes="panel">
           <StackPanel>
-            <Border Classes="panel-glow" />
             <Grid ColumnDefinitions="*,Auto">
               <StackPanel>
-                <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Potato mode" /></StackPanel>
+                <TextBlock Classes="h3" Text="Potato mode" />
                 <TextBlock Classes="sub" Text="Maximum FPS on weak hardware." />
               </StackPanel>
               <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding Potato}" VerticalAlignment="Top" />
@@ -84,12 +80,11 @@
         </Border>
       </Grid>
 
-      <Border Classes="panel stagger">
+      <Border Classes="panel">
         <StackPanel>
-          <Border Classes="panel-glow" />
           <Grid ColumnDefinitions="*,Auto">
             <StackPanel>
-              <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Session" /></StackPanel>
+              <TextBlock Classes="h3" Text="Session" />
               <TextBlock Classes="sub" Text="{Binding LaunchStatus}" />
             </StackPanel>
             <Border Grid.Column="1" Classes="chip"><TextBlock Text="{Binding InstallSource}" /></Border>

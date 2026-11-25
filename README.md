@@ -38,3 +38,5 @@ dotnet publish src/RoseTrap -c Release -r win-x64        # trimmed single-file e
 ## Credits
 
 Core behaviour is adapted from [Masterstrap](https://github.com/Masterstrap/Masterstrap) (MIT).
+
+Icons: [Fluent UI System Icons](https://github.com/microsoft/fluentui-system-icons) (MIT) and the "screwdriver-wrench" icon from [Font Awesome Free](https://fontawesome.com) (CC BY 4.0). `design/tools/icons.py` regenerates `src/RoseTrap/Theme/IconData.g.cs` from the npm packages.

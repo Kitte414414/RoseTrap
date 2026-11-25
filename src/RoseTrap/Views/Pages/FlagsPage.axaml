@@ -5,9 +5,8 @@
              x:DataType="vm:MainViewModel">
   <ScrollViewer>
     <StackPanel Margin="24,22,24,30" Spacing="14">
-      <Grid Classes="stagger" ColumnDefinitions="*,Auto">
+      <Grid ColumnDefinitions="*,Auto">
         <StackPanel>
-          <TextBlock Classes="eyebrow" Text="04 · FFLAGS" />
           <TextBlock Classes="h2" Text="Fast flags" />
           <TextBlock Classes="sub" Text="{Binding FlagSummary}" />
         </StackPanel>
@@ -17,11 +16,9 @@
           <Button Classes="danger" Content="Clear all" Command="{Binding ClearFlagsCommand}" />
         </StackPanel>
       </Grid>
-      <Border Classes="divider stagger" />
 
-      <Border Classes="panel stagger" Padding="16,15,16,15">
+      <Border Classes="panel" Padding="16,15,16,15">
         <StackPanel Spacing="10">
-          <Border Classes="panel-glow" />
           <TextBox Text="{Binding Search}" Watermark="Search flags…" />
           <ItemsControl ItemsSource="{Binding FilteredFlags}">
             <ItemsControl.ItemsPanel>
@@ -48,7 +45,7 @@
                     <Button Grid.Column="4" Classes="icon" ToolTip.Tip="Remove"
                             Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).RemoveFlagCommand}"
                             CommandParameter="{Binding}">
-                      <Path Data="M3 3l8 8M11 3l-8 8" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1.6" StrokeLineCap="Round" />
+                      <Viewbox Width="12" Height="12"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Close}" Fill="{Binding $parent[Button].Foreground}" /></Canvas></Viewbox>
                     </Button>
                   </Grid>
                 </Border>

@@ -5,17 +5,14 @@
              x:DataType="vm:MainViewModel">
   <ScrollViewer>
     <StackPanel Margin="24,22,24,30" Spacing="14">
-      <StackPanel Classes="stagger">
-        <TextBlock Classes="eyebrow" Text="08 · SETTINGS" />
+      <StackPanel>
         <TextBlock Classes="h2" Text="Settings" />
         <TextBlock Classes="sub" Text="RoseTrap itself." />
       </StackPanel>
-      <Border Classes="divider stagger" />
       <Grid ColumnDefinitions="*,14,*">
-        <Border Classes="panel stagger">
+        <Border Classes="panel">
           <StackPanel>
-            <Border Classes="panel-glow" />
-            <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Launching" /></StackPanel>
+            <TextBlock Classes="h3" Text="Launching" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
               <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Open Roblox links with RoseTrap" /><TextBlock Classes="hint" Text="The website's Play button goes through RoseTrap." /></StackPanel>
               <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding InterceptLinks}" />
@@ -32,12 +29,11 @@
             </Grid>
           </StackPanel>
         </Border>
-        <Border Grid.Column="2" Classes="panel stagger">
+        <Border Grid.Column="2" Classes="panel">
           <StackPanel>
-            <Border Classes="panel-glow" />
             <Grid ColumnDefinitions="*,Auto">
               <StackPanel>
-                <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Roblox install" /></StackPanel>
+                <TextBlock Classes="h3" Text="Roblox install" />
                 <TextBlock Classes="sub" Text="{Binding InstallSource}" />
               </StackPanel>
               <Border Grid.Column="1" Classes="chip"><TextBlock Text="{Binding InstalledVersion}" /></Border>
