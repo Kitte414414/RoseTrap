@@ -1,0 +1,75 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:RoseTrap.ViewModels"
+             x:Class="RoseTrap.Views.Pages.FlagsPage"
+             x:DataType="vm:MainViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="24,22,24,30" Spacing="14">
+      <Grid Classes="stagger" ColumnDefinitions="*,Auto">
+        <StackPanel>
+          <TextBlock Classes="eyebrow" Text="04 · FFLAGS" />
+          <TextBlock Classes="h2" Text="Fast flags" />
+          <TextBlock Classes="sub" Text="{Binding FlagSummary}" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
+          <Button Name="ImportButton" Content="Import JSON" />
+          <Button Name="ExportButton" Content="Export JSON" />
+          <Button Classes="danger" Content="Clear all" Command="{Binding ClearFlagsCommand}" />
+        </StackPanel>
+      </Grid>
+      <Border Classes="divider stagger" />
+
+      <Border Classes="panel stagger" Padding="16,15,16,15">
+        <StackPanel Spacing="10">
+          <Border Classes="panel-glow" />
+          <TextBox Text="{Binding Search}" Watermark="Search flags…" />
+          <ItemsControl ItemsSource="{Binding FilteredFlags}">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><StackPanel Spacing="6" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:FlagRow">
+                <Border Height="44" Padding="10,0,6,0" CornerRadius="9" Background="{DynamicResource Field}" BorderBrush="#2b2a2d" BorderThickness="1">
+                  <Grid ColumnDefinitions="Auto,*,130,Auto,Auto" ColumnSpacing="10">
+                    <ToggleButton Classes="switch sm" IsChecked="{Binding Enabled}" />
+                    <TextBlock Grid.Column="1" Classes="mono" Text="{Binding Name}" FontSize="11.5" Foreground="#e5dce0"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Name}" />
+                    <TextBox Grid.Column="2" Classes="mono" Classes.invalid="{Binding !IsValueValid}" Text="{Binding Value}"
+                             MinHeight="28" Height="28" Padding="9,4" FontSize="11.5" VerticalAlignment="Center" />
+                    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                      <Border CornerRadius="5" BorderThickness="1" Padding="6,2" BorderBrush="#46395f" Background="#252032">
+                        <TextBlock Text="{Binding Type}" FontSize="9.5" FontWeight="SemiBold" Foreground="#b9a7ec" />
+                      </Border>
+                      <Border Classes="chip warn" IsVisible="{Binding !IsAllowed}" VerticalAlignment="Center"
+                              ToolTip.Tip="Not on Roblox's allowlist: the player ignores this flag.">
+                        <TextBlock Text="Ignored" />
+                      </Border>
+                    </StackPanel>
+                    <Button Grid.Column="4" Classes="icon" ToolTip.Tip="Remove"
+                            Command="{Binding $parent[ItemsControl].((vm:MainViewModel)DataContext).RemoveFlagCommand}"
+                            CommandParameter="{Binding}">
+                      <Path Data="M3 3l8 8M11 3l-8 8" Stroke="{Binding $parent[Button].Foreground}" StrokeThickness="1.6" StrokeLineCap="Round" />
+                    </Button>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Border IsVisible="{Binding HasNoFlags}" Padding="22" CornerRadius="10" BorderBrush="#333035" BorderThickness="1">
+            <TextBlock Text="{Binding EmptyText}" HorizontalAlignment="Center" Foreground="#6f696e" />
+          </Border>
+          <Border Classes="divider" Margin="0,4,0,2" />
+          <Grid ColumnDefinitions="*,150,Auto" ColumnSpacing="8">
+            <TextBox Classes="mono" Classes.invalid="{Binding NewFlagInvalid}" Text="{Binding NewFlagName}" Watermark="FFlagExampleName">
+              <TextBox.KeyBindings><KeyBinding Gesture="Enter" Command="{Binding AddFlagCommand}" /></TextBox.KeyBindings>
+            </TextBox>
+            <TextBox Grid.Column="1" Classes="mono" Text="{Binding NewFlagValue}" Watermark="value">
+              <TextBox.KeyBindings><KeyBinding Gesture="Enter" Command="{Binding AddFlagCommand}" /></TextBox.KeyBindings>
+            </TextBox>
+            <Button Grid.Column="2" Classes="primary" Content="Add flag" Command="{Binding AddFlagCommand}" />
+          </Grid>
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

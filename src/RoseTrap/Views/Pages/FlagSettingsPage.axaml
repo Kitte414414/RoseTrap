@@ -1,0 +1,63 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:RoseTrap.ViewModels"
+             x:Class="RoseTrap.Views.Pages.FlagSettingsPage"
+             x:DataType="vm:MainViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="24,22,24,30" Spacing="14">
+      <Grid Classes="stagger" ColumnDefinitions="*,Auto">
+        <StackPanel>
+          <TextBlock Classes="eyebrow" Text="05 · FFLAGS SETTINGS" />
+          <TextBlock Classes="h2" Text="FFlags settings" />
+          <TextBlock Classes="sub" Text="How flags are written to Roblox." />
+        </StackPanel>
+        <Button Grid.Column="1" Classes="primary" VerticalAlignment="Bottom" Content="Apply now" Command="{Binding ApplyNowCommand}" />
+      </Grid>
+      <Border Classes="divider stagger" />
+
+      <Grid ColumnDefinitions="*,14,*">
+        <Border Classes="panel stagger">
+          <StackPanel>
+            <Border Classes="panel-glow" />
+            <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Behaviour" /></StackPanel>
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Apply on launch" /><TextBlock Classes="hint" Text="Write flags right before Roblox starts." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding ApplyOnLaunch}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Allowlist only" /><TextBlock Classes="hint" Text="Skip flags Roblox ignores and clean them out of the file." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding AllowlistOnly}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Also write the global file" /><TextBlock Classes="hint" Text="So flags apply when Roblox starts without RoseTrap too." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding WriteGlobalFile}" />
+            </Grid>
+            <TextBlock Classes="hint" Margin="0,4,0,8" Text="{Binding SkippedSummary}" />
+          </StackPanel>
+        </Border>
+        <Border Grid.Column="2" Classes="panel stagger">
+          <StackPanel>
+            <Border Classes="panel-glow" />
+            <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Files" /></StackPanel>
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Restore original" /><TextBlock Classes="hint" Text="Put the files back how they were before RoseTrap." /></StackPanel>
+              <Button Grid.Column="1" Content="Restore" Command="{Binding RestoreBackupCommand}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Remove RoseTrap flags" /><TextBlock Classes="hint" Text="Flags added by hand are kept." /></StackPanel>
+              <Button Grid.Column="1" Classes="danger" Content="Remove" Command="{Binding RemoveAllFlagsCommand}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="ClientSettings folder" /></StackPanel>
+              <Button Grid.Column="1" Classes="ghost" Name="OpenFolderButton" Content="Open folder" />
+            </Grid>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

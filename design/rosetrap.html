@@ -20,7 +20,7 @@ button,input,select{font:inherit;color:inherit}
 .topline strong{color:#d7cbd0;font-weight:600;letter-spacing:.04em;display:inline-block}
 .window{position:relative;width:100%;height:min(690px,76vh);min-height:520px;display:flex;flex-direction:column;overflow:hidden;border:1px solid #393639;border-radius:15px;background:var(--shell);box-shadow:0 24px 70px #0008,0 1px 0 #ffffff08 inset}
 .titlebar{height:42px;flex:0 0 42px;display:flex;align-items:center;justify-content:space-between;padding:0 17px;border-bottom:1px solid var(--line);background:#202022}
-.brand{appearance:none;border:0;background:none;padding:0;cursor:pointer;font-size:14px;font-weight:650;letter-spacing:-.035em;color:#f0e9ec}.brand span{color:var(--accent)}
+.brand{display:flex;align-items:center;gap:7px;appearance:none;border:0;background:none;padding:0;cursor:pointer;font-size:14px;font-weight:650;letter-spacing:-.035em;color:#f0e9ec}.brand em{font-style:normal;color:var(--accent)}.brand-icon{width:26px;height:26px;display:block;margin-left:-4px}
 .window-actions{display:flex;gap:7px}.window-actions i{width:7px;height:7px;border-radius:50%;background:#514b4f}
 .layout{min-height:0;flex:1;display:flex}
 
@@ -38,8 +38,15 @@ button,input,select{font:inherit;color:inherit}
 .glyph{width:18px;height:18px;flex:0 0 18px;display:grid;place-items:center;color:var(--accent-bright);transition:transform .3s var(--ease-spring)}.glyph svg{width:17px;height:17px;display:block;overflow:visible}
 .nav-item:hover .glyph{transform:scale(1.08)}
 .nav-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.window.collapsed .sidebar{width:58px;flex-basis:58px;padding:17px 9px 13px}
-.window.collapsed .nav-item{justify-content:center;padding:0}.window.collapsed .nav-label{display:none}
+/* Compact by default: icon rail that opens over the page while hovered. */
+.window.collapsed .sidebar{position:absolute;top:0;bottom:0;left:0;z-index:5;width:58px;padding:17px 9px 13px;overflow:hidden;transition:width .26s var(--ease-out),box-shadow .26s}
+.window.collapsed .sidebar:hover{width:178px;box-shadow:12px 0 32px -8px #000a;transition-delay:.09s}
+.window.collapsed .layout{position:relative}
+.window.collapsed .nav-group{width:160px}
+.window.collapsed .content{margin-left:58px}
+.window.collapsed .nav-label{opacity:0;transition:opacity .18s}
+.window.collapsed .sidebar:hover .nav-label{opacity:1}
+
 
 /* Views: every module lives in its own layer so switches can cross-animate */
 .content{flex:1;min-width:0;background:#1e1e20;position:relative;overflow:hidden}
@@ -212,8 +219,8 @@ button,input,select{font:inherit;color:inherit}
 <body>
 <main class="stage">
   <div class="topline"><strong id="crumb">RoseTrap / Welcome</strong><span>Interface · Personal build</span></div>
-  <section class="window" id="window">
-    <header class="titlebar"><button class="brand" id="brandHome" title="Back to welcome">Rose<span>Trap</span></button><div class="window-actions" aria-hidden="true"><i></i><i></i><i></i></div></header>
+  <section class="window collapsed" id="window">
+    <header class="titlebar"><button class="brand" id="brandHome" title="Back to welcome"><img class="brand-icon" src="rosetrap-ascii-rose.svg" alt=""><span>Rose<em>Trap</em></span></button><div class="window-actions" aria-hidden="true"><i></i><i></i><i></i></div></header>
     <div class="layout">
       <aside class="sidebar" id="sidebar" aria-label="Main navigation">
         <span class="nav-indicator" id="navIndicator" aria-hidden="true"></span>
@@ -396,7 +403,7 @@ button,input,select{font:inherit;color:inherit}
               <section class="panel stagger">
                 <div class="panel-head"><div><h3><span class="dot"></span>Motion</h3></div></div>
                 <div class="stack"><div class="stack-top"><div class="row-label"><b>Animation speed</b></div><span class="value" id="speedOut">1.0×</span></div><input class="slider" id="speedSlider" type="range" min="5" max="20" value="10" aria-label="Animation speed"></div>
-                <div class="row"><div class="row-label"><b>Compact sidebar</b></div><button class="switch" id="compactSwitch2" role="switch" aria-checked="false" aria-label="Compact sidebar"></button></div>
+                <div class="row"><div class="row-label"><b>Compact sidebar</b></div><button class="switch" id="compactSwitch2" role="switch" aria-checked="true" aria-label="Compact sidebar"></button></div>
               </section>
             </div>
           </div></div>
@@ -406,7 +413,7 @@ button,input,select{font:inherit;color:inherit}
     </div>
     <div class="toasts" id="toasts" aria-live="polite"></div>
   </section>
-  <div class="controls"><div class="toggle-wrap"><button class="switch" id="collapseSwitch" role="switch" aria-checked="false" aria-label="Compact sidebar"></button><span>Compact sidebar</span></div><span class="note">Pick a section on the left · ↑ ↓ to move between tabs</span></div>
+  <div class="controls"><div class="toggle-wrap"><button class="switch" id="collapseSwitch" role="switch" aria-checked="true" aria-label="Compact sidebar"></button><span>Compact sidebar</span></div><span class="note">Pick a section on the left · ↑ ↓ to move between tabs</span></div>
 </main>
 <script>
 (() => {
@@ -854,50 +861,6 @@ button,input,select{font:inherit;color:inherit}
     surface((u, v) => { const t = u * TS, r = .018 + .19 * u + v * .045 * (1 - .35 * u), a = t + .15 * Math.sin(t * 1.4); return [RS * r * Math.cos(a), RS * r * Math.sin(a), SZ + .075 * Math.sin(t * .75) + .035 * v]; },
       270, 13, u => -.015 + .035 * Math.sin(u * TS * 1.7), 0, 2 / 269);
 
-    // Sepals: five slim green points curling down under the bloom.
-    for (let i = 0; i < 5; i++) {
-      const th = i * Math.PI * 2 / 5 + .4;
-      surface((u, v) => {
-        const r = .05 + .46 * u, hw = .075 * Math.pow(Math.sin(Math.PI * Math.min(1, .1 + u)), .6) * (1 - .8 * u) + .004;
-        const a = th + v * hw / r + .12 * u * u;
-        return [r * Math.cos(a), r * Math.sin(a), -.1 + .02 * u - .55 * u * u + .03 * v * v];
-      }, 30, 9, (u, v) => -.02 + .08 * Math.exp(-v * v * 30), 1);
-    }
-
-    // Stem with a slight S-curve, a hip where it meets the bloom, prickles and two compound leaves.
-    const stemC = s => [.07 * Math.sin(s * 2.4), .045 * Math.sin(s * 3.3 + .5), -.1 - 1.32 * s];
-    const stemR = s => .04 + .05 * Math.exp(-s * 16);
-    surface((u, v) => { const c = stemC(u), r = stemR(u), ph = v * Math.PI; return [c[0] + r * Math.cos(ph), c[1] + r * Math.sin(ph), c[2]]; },
-      160, 16, (u, v) => -.05 + .04 * Math.sin(v * Math.PI * 4 + u * 11), 1);
-    [[.22, .6], [.34, 2.9], [.5, 4.6], [.63, 1.5], [.8, 3.6], [.9, 5.6]].forEach(([s, ph]) => {
-      const c = stemC(s), o = [Math.cos(ph), Math.sin(ph), 0], e2 = [Math.sin(ph), -Math.cos(ph), 0], r0 = stemR(s);
-      surface((u, v) => {
-        const ax = [c[0] + o[0] * (r0 * .8 + .1 * u), c[1] + o[1] * (r0 * .8 + .1 * u), c[2] - .015 - .06 * u * u];
-        const rr = .03 * Math.pow(1 - u, 1.25), a = v * Math.PI;
-        return [ax[0] + rr * Math.sin(a) * e2[0], ax[1] + rr * Math.sin(a) * e2[1], ax[2] + rr * Math.cos(a)];
-      }, 14, 12, () => .02, 2);
-    });
-    function leaf(s, ph, scale) {
-      const c = stemC(s), o = [Math.cos(ph), Math.sin(ph)], side = [-o[1], o[0]];
-      const pet = t => [c[0] + o[0] * .3 * t * scale, c[1] + o[1] * .3 * t * scale, c[2] + (.13 * t - .05 * t * t) * scale];
-      surface((u, v) => { const p = pet(u), a = v * Math.PI, r = .011; return [p[0] + side[0] * r * Math.cos(a), p[1] + side[1] * r * Math.cos(a), p[2] + r * Math.sin(a)]; }, 34, 6, () => -.02, 1);
-      const leaflet = (org, dir, L, Wd) => {
-        const dl = Math.hypot(...dir), d = dir.map(x => x / dl);
-        let sd = [d[1], -d[0], 0]; const sl = Math.hypot(...sd) || 1; sd = sd.map(x => x / sl);
-        const nr = [sd[1] * d[2] - sd[2] * d[1], sd[2] * d[0] - sd[0] * d[2], sd[0] * d[1] - sd[1] * d[0]];
-        surface((u, v) => {
-          let hw = Wd * Math.pow(Math.sin(Math.PI * Math.pow(u, .8)), .9);
-          if (u > .12 && u < .94) hw *= 1 + .1 * (1 - 2 * Math.abs((u * 8) % 1 - .5));
-          const lift = .32 * Wd * v * v * Math.sin(Math.PI * u) - .3 * L * u * u;
-          return [0, 1, 2].map(k => org[k] + d[k] * u * L + sd[k] * v * hw + nr[k] * lift);
-        }, 34, 15, (u, v) => .02 + .12 * Math.exp(-v * v * 90) - .06 * (Math.sin((u * 12 - Math.abs(v) * 2.5) * Math.PI) > .8 ? 1 : 0), 1);
-      };
-      const end = pet(1), mid = pet(.6);
-      leaflet(end, [o[0], o[1], .28], .3 * scale, .12 * scale);
-      [1, -1].forEach(k => leaflet(mid, [o[0] * .55 + side[0] * k * .8, o[1] * .55 + side[1] * k * .8, .22], .23 * scale, .095 * scale));
-    }
-    leaf(.5, 2.2, 1);
-    leaf(.74, -.75, .85);
 
     const P = new Float32Array(S), count = S.length / 8;
     const L = [-.42, .6, .68], ll = Math.hypot(...L); L[0] /= ll; L[1] /= ll; L[2] /= ll;

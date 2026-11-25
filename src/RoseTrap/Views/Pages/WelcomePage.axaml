@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="using:RoseTrap.Controls"
+             x:Class="RoseTrap.Views.Pages.WelcomePage">
+  <Grid>
+    <c:VineFrame />
+    <Grid RowDefinitions="*,Auto,6*,Auto,*" Margin="24,22,24,34">
+      <TextBlock Grid.Row="1" Text="Select a module" HorizontalAlignment="Center" FontSize="22" FontWeight="Medium"
+                 LetterSpacing="0.5" Foreground="#e8dfe2" />
+      <Panel Grid.Row="2" MaxWidth="600" MaxHeight="470" Margin="0,4">
+        <Ellipse Width="300" Height="170" Opacity="0.9" VerticalAlignment="Center" IsHitTestVisible="False">
+          <Ellipse.Fill>
+            <RadialGradientBrush>
+              <GradientStop Offset="0" Color="#28a64f68" />
+              <GradientStop Offset="0.45" Color="#186d3340" />
+              <GradientStop Offset="1" Color="#00000000" />
+            </RadialGradientBrush>
+          </Ellipse.Fill>
+        </Ellipse>
+        <c:AsciiRose Name="Rose" ToolTip.Tip="Drag to spin" />
+      </Panel>
+      <TextBlock Grid.Row="3" Text="ROSETRAP · CONTROL CENTER" HorizontalAlignment="Center" FontSize="10" LetterSpacing="2.3"
+                 Foreground="#877b81" />
+    </Grid>
+    <Grid VerticalAlignment="Bottom" Margin="24,0,24,20" ColumnDefinitions="*,Auto">
+      <TextBlock Text="CHOOSE A SECTION TO BEGIN · DRAG THE ROSE" FontSize="9" LetterSpacing="1.1" Foreground="#645d61" />
+      <TextBlock Grid.Column="1" Text="01 / WELCOME" FontSize="9" LetterSpacing="1.1" Foreground="#8a747c" />
+    </Grid>
+  </Grid>
+</UserControl>

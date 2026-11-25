@@ -1,0 +1,64 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:RoseTrap.ViewModels"
+             x:Class="RoseTrap.Views.Pages.SettingsPage"
+             x:DataType="vm:MainViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="24,22,24,30" Spacing="14">
+      <StackPanel Classes="stagger">
+        <TextBlock Classes="eyebrow" Text="08 · SETTINGS" />
+        <TextBlock Classes="h2" Text="Settings" />
+        <TextBlock Classes="sub" Text="RoseTrap itself." />
+      </StackPanel>
+      <Border Classes="divider stagger" />
+      <Grid ColumnDefinitions="*,14,*">
+        <Border Classes="panel stagger">
+          <StackPanel>
+            <Border Classes="panel-glow" />
+            <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Launching" /></StackPanel>
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Open Roblox links with RoseTrap" /><TextBlock Classes="hint" Text="The website's Play button goes through RoseTrap." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding InterceptLinks}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Close after launching" /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding CloseAfterLaunch}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Multiple instances" /><TextBlock Classes="hint" Text="Run several Roblox windows. RoseTrap stays open." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding MultiInstance}" />
+            </Grid>
+          </StackPanel>
+        </Border>
+        <Border Grid.Column="2" Classes="panel stagger">
+          <StackPanel>
+            <Border Classes="panel-glow" />
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel>
+                <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Roblox install" /></StackPanel>
+                <TextBlock Classes="sub" Text="{Binding InstallSource}" />
+              </StackPanel>
+              <Border Grid.Column="1" Classes="chip"><TextBlock Text="{Binding InstalledVersion}" /></Border>
+            </Grid>
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Channel" /><TextBlock Classes="hint" Text="LIVE unless you're testing a beta." /></StackPanel>
+              <TextBox Grid.Column="1" Classes="mono" Width="120" Text="{Binding Channel}" VerticalAlignment="Center" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Reinstall" /><TextBlock Classes="hint" Text="Fixes a broken install." /></StackPanel>
+              <Button Grid.Column="1" Content="Reinstall" Command="{Binding ReinstallCommand}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="RoseTrap folder" /></StackPanel>
+              <Button Grid.Column="1" Classes="ghost" Name="OpenRootButton" Content="Open folder" />
+            </Grid>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

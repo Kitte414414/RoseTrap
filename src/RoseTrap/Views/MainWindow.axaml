@@ -1,0 +1,142 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:RoseTrap.ViewModels"
+        xmlns:c="using:RoseTrap.Controls"
+        x:Class="RoseTrap.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="RoseTrap"
+        Icon="/Assets/rosetrap.ico"
+        Width="1080" Height="690" MinWidth="760" MinHeight="520"
+        Background="{DynamicResource Shell}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaTitleBarHeightHint="42"
+        WindowStartupLocation="CenterScreen">
+  <Grid RowDefinitions="42,*">
+    <!-- Title bar -->
+    <Border Name="TitleBar" Background="{DynamicResource TitleBar}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,0,1">
+      <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="17,0">
+        <Button Name="BrandHome" Background="Transparent" BorderThickness="0" Padding="0" Height="NaN" ToolTip.Tip="Back to welcome">
+          <StackPanel Orientation="Horizontal" Spacing="7">
+            <Image Source="{StaticResource AppIcon}" Width="26" Height="26" VerticalAlignment="Center" />
+            <TextBlock FontSize="14" FontWeight="SemiBold" LetterSpacing="-0.5" VerticalAlignment="Center">
+            <Run Text="Rose" Foreground="#f0e9ec" /><Run Text="Trap" Foreground="{DynamicResource Accent}" />
+            </TextBlock>
+          </StackPanel>
+        </Button>
+        <TextBlock Name="Crumb" Margin="14,1,0,0" FontSize="10" LetterSpacing="0.9" Foreground="{DynamicResource Muted}"
+                   VerticalAlignment="Center" Text="WELCOME" />
+      </StackPanel>
+    </Border>
+
+    <Grid Grid.Row="1">
+      <!-- Pages. Left margin = collapsed sidebar width, so hover-expanding overlays instead of reflowing. -->
+      <Border Name="ContentHost" Margin="58,0,0,0" Background="{DynamicResource ContentBg}" ClipToBounds="True">
+        <Border.Transitions>
+          <Transitions><ThicknessTransition Property="Margin" Duration="0:0:0.26" Easing="{StaticResource EaseOut}" /></Transitions>
+        </Border.Transitions>
+        <TransitioningContentControl Name="Pages">
+          <TransitioningContentControl.PageTransition>
+            <c:StaggerTransition />
+          </TransitioningContentControl.PageTransition>
+        </TransitioningContentControl>
+      </Border>
+
+      <!-- Sidebar -->
+      <Border Name="Sidebar" Width="58" HorizontalAlignment="Left" ZIndex="10"
+              Background="{DynamicResource Sidebar}" BorderBrush="{DynamicResource Line}" BorderThickness="0,0,1,0"
+              Padding="9,17,9,13" ClipToBounds="True" BoxShadow="0 0 0 0 #00000000">
+        <Border.Transitions>
+          <Transitions>
+            <DoubleTransition Property="Width" Duration="0:0:0.26" Easing="{StaticResource EaseOut}" />
+            <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.26" />
+          </Transitions>
+        </Border.Transitions>
+        <Panel Name="NavPanel">
+          <!-- Sliding highlight behind the active item. -->
+          <Border Name="NavIndicator" Height="36" VerticalAlignment="Top" CornerRadius="8" Opacity="0"
+                  Background="#30292d" BorderBrush="#49353d" BorderThickness="1" RenderTransform="none">
+            <Border.Transitions>
+              <Transitions>
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.42">
+                  <TransformOperationsTransition.Easing>
+                    <SplineEasing X1="0.34" Y1="1.36" X2="0.64" Y2="1" />
+                  </TransformOperationsTransition.Easing>
+                </TransformOperationsTransition>
+                <DoubleTransition Property="Opacity" Duration="0:0:0.2" />
+              </Transitions>
+            </Border.Transitions>
+            <Border Width="2" Margin="-1,9" HorizontalAlignment="Left" CornerRadius="1" Background="{DynamicResource AccentBright}"
+                    BoxShadow="0 0 10 0 #CCf3adbd" />
+          </Border>
+
+          <DockPanel>
+            <StackPanel Name="NavBottom" DockPanel.Dock="Bottom" Spacing="5">
+              <Button Classes="nav" Tag="Settings">
+                <StackPanel Orientation="Horizontal">
+                  <Viewbox Width="18" Height="18"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Settings}" StrokeThickness="0" /></Canvas></Viewbox>
+                  <TextBlock Classes="navlabel" Text="Settings" />
+                </StackPanel>
+              </Button>
+              <Button Classes="nav" Tag="Appearance">
+                <StackPanel Orientation="Horizontal">
+                  <Viewbox Width="18" Height="18">
+                    <Canvas Width="24" Height="24">
+                      <Path Data="M4 5.2h16v13.6H4z" Fill="Transparent" StrokeThickness="1.8" />
+                      <Path Data="M7 8.2h10M7 12h10M7 15.8h10" Fill="Transparent" StrokeThickness="1.6" StrokeLineCap="Round" />
+                      <Path Data="M11.6 8.2A1.6 1.6 0 1 0 8.4 8.2A1.6 1.6 0 1 0 11.6 8.2ZM16.6 12A1.6 1.6 0 1 0 13.4 12A1.6 1.6 0 1 0 16.6 12ZM10.6 15.8A1.6 1.6 0 1 0 7.4 15.8A1.6 1.6 0 1 0 10.6 15.8Z"
+                            Fill="{DynamicResource Sidebar}" StrokeThickness="1.2" />
+                    </Canvas>
+                  </Viewbox>
+                  <TextBlock Classes="navlabel" Text="Appearance" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+
+            <StackPanel Name="NavTop" Spacing="5">
+              <Button Classes="nav" Tag="General">
+                <StackPanel Orientation="Horizontal">
+                  <Viewbox Width="18" Height="18"><Canvas Width="44" Height="44"><Path Data="{StaticResource Icon.General}" /></Canvas></Viewbox>
+                  <TextBlock Classes="navlabel" Text="General" />
+                </StackPanel>
+              </Button>
+              <Button Classes="nav" Tag="Global">
+                <StackPanel Orientation="Horizontal">
+                  <Viewbox Width="18" Height="18"><Canvas Width="44" Height="44"><Path Data="{StaticResource Icon.Global}" /></Canvas></Viewbox>
+                  <TextBlock Classes="navlabel" Text="Global" />
+                </StackPanel>
+              </Button>
+              <Button Classes="nav" Tag="FFlags">
+                <StackPanel Orientation="Horizontal">
+                  <Viewbox Width="18" Height="18"><Canvas Width="44" Height="44"><Path Data="{StaticResource Icon.FFlags}" /></Canvas></Viewbox>
+                  <TextBlock Classes="navlabel" Text="FFlags" />
+                </StackPanel>
+              </Button>
+              <Button Classes="nav" Tag="FFlags Settings">
+                <StackPanel Orientation="Horizontal">
+                  <Viewbox Width="18" Height="18"><Canvas Width="44" Height="44"><Path Data="{StaticResource Icon.FFlagsSettings}" /></Canvas></Viewbox>
+                  <TextBlock Classes="navlabel" Text="FFlags Settings" />
+                </StackPanel>
+              </Button>
+              <Button Classes="nav" Tag="Preset">
+                <StackPanel Orientation="Horizontal">
+                  <Viewbox Width="18" Height="18"><Canvas Width="44" Height="44"><Path Data="{StaticResource Icon.Preset}" /></Canvas></Viewbox>
+                  <TextBlock Classes="navlabel" Text="Preset" />
+                </StackPanel>
+              </Button>
+              <Button Classes="nav" Tag="Shaders">
+                <StackPanel Orientation="Horizontal">
+                  <Viewbox Width="18" Height="18"><Canvas Width="44" Height="44"><Path Data="{StaticResource Icon.Shaders}" /></Canvas></Viewbox>
+                  <TextBlock Classes="navlabel" Text="Shaders" />
+                </StackPanel>
+              </Button>
+            </StackPanel>
+          </DockPanel>
+        </Panel>
+      </Border>
+
+      <!-- Toasts -->
+      <StackPanel Name="Toasts" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="16" Spacing="8"
+                  ZIndex="20" IsHitTestVisible="False" />
+    </Grid>
+  </Grid>
+</Window>

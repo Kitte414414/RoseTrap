@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:RoseTrap.ViewModels"
+             x:Class="RoseTrap.Views.Pages.AppearancePage"
+             x:DataType="vm:MainViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="24,22,24,30" Spacing="14">
+      <StackPanel Classes="stagger">
+        <TextBlock Classes="eyebrow" Text="09 · APPEARANCE" />
+        <TextBlock Classes="h2" Text="Appearance" />
+        <TextBlock Classes="sub" Text="Make RoseTrap yours." />
+      </StackPanel>
+      <Border Classes="divider stagger" />
+      <Grid ColumnDefinitions="*,14,*">
+        <Border Classes="panel stagger">
+          <StackPanel>
+            <Border Classes="panel-glow" />
+            <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Accent colour" /></StackPanel>
+            <StackPanel Name="Swatches" Orientation="Horizontal" Margin="0,14,0,12">
+              <RadioButton Classes="swatch" GroupName="accent" Background="#d99aa9" Tag="0" ToolTip.Tip="Rose" />
+              <RadioButton Classes="swatch" GroupName="accent" Background="#d9727f" Tag="1" ToolTip.Tip="Crimson" />
+              <RadioButton Classes="swatch" GroupName="accent" Background="#b49ad9" Tag="2" ToolTip.Tip="Lilac" />
+              <RadioButton Classes="swatch" GroupName="accent" Background="#e0a98a" Tag="3" ToolTip.Tip="Peach" />
+              <RadioButton Classes="swatch" GroupName="accent" Background="#8fc9b0" Tag="4" ToolTip.Tip="Mint" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+        <Border Grid.Column="2" Classes="panel stagger">
+          <StackPanel>
+            <Border Classes="panel-glow" />
+            <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Layout &amp; motion" /></StackPanel>
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Compact sidebar" /><TextBlock Classes="hint" Text="Icons only; opens while you hover it." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding CompactSidebar}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Tab animations" /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding Animations}" />
+            </Grid>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

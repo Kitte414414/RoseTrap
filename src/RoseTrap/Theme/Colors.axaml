@@ -1,0 +1,49 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Palette from the mockup's :root variables. Accent brushes are swapped at runtime (Appearance). -->
+  <Color x:Key="CanvasColor">#111112</Color>
+  <SolidColorBrush x:Key="Shell" Color="#1d1d1f" />
+  <SolidColorBrush x:Key="TitleBar" Color="#202022" />
+  <SolidColorBrush x:Key="Sidebar" Color="#1c1c1e" />
+  <SolidColorBrush x:Key="ContentBg" Color="#1e1e20" />
+  <SolidColorBrush x:Key="Line" Color="#303033" />
+  <SolidColorBrush x:Key="RowLine" Color="#2a292c" />
+  <SolidColorBrush x:Key="Text" Color="#e9e6e8" />
+  <SolidColorBrush x:Key="TextStrong" Color="#efe7ea" />
+  <SolidColorBrush x:Key="Muted" Color="#999398" />
+  <SolidColorBrush x:Key="Faint" Color="#857e83" />
+  <SolidColorBrush x:Key="Field" Color="#19191b" />
+  <SolidColorBrush x:Key="FieldLine" Color="#323034" />
+  <SolidColorBrush x:Key="PanelLine" Color="#2e2c30" />
+  <SolidColorBrush x:Key="ItemHover" Color="#2c2a2d" />
+  <SolidColorBrush x:Key="Danger" Color="#f2aeb0" />
+  <SolidColorBrush x:Key="DangerBg" Color="#33201f" />
+  <SolidColorBrush x:Key="DangerLine" Color="#57302f" />
+  <LinearGradientBrush x:Key="PanelBg" StartPoint="0%,0%" EndPoint="0%,100%">
+    <GradientStop Offset="0" Color="#242326" />
+    <GradientStop Offset="0.6" Color="#202022" />
+  </LinearGradientBrush>
+
+  <SolidColorBrush x:Key="Accent" Color="#d99aa9" />
+  <SolidColorBrush x:Key="AccentBright" Color="#f3adbd" />
+  <SolidColorBrush x:Key="AccentInk" Color="#2b1219" />
+  <SolidColorBrush x:Key="AccentSoft" Color="#1Ad99aa9" />
+  <SolidColorBrush x:Key="AccentLine" Color="#38d99aa9" />
+  <SolidColorBrush x:Key="AccentTrack" Color="#61d99aa9" />
+  <LinearGradientBrush x:Key="AccentGradient" StartPoint="0%,0%" EndPoint="0%,100%">
+    <GradientStop Offset="0" Color="#f3adbd" />
+    <GradientStop Offset="1" Color="#d99aa9" />
+  </LinearGradientBrush>
+  <LinearGradientBrush x:Key="AccentGradientH" StartPoint="0%,0%" EndPoint="100%,0%">
+    <GradientStop Offset="0" Color="#d99aa9" />
+    <GradientStop Offset="1" Color="#f3adbd" />
+  </LinearGradientBrush>
+
+  <!-- Fluent picks these up for focus rings, selection and text carets. -->
+  <Color x:Key="SystemAccentColor">#d99aa9</Color>
+  <Color x:Key="SystemAccentColorLight1">#e6b3bf</Color>
+  <Color x:Key="SystemAccentColorDark1">#c4808f</Color>
+
+  <SplineEasing x:Key="EaseOut" X1="0.16" Y1="1" X2="0.3" Y2="1" />
+  <CornerRadius x:Key="PanelRadius">12</CornerRadius>
+</ResourceDictionary>

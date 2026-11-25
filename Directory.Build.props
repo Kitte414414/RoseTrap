@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AvaloniaVersion>11.3.23</AvaloniaVersion>
+    <Version>0.1.0</Version>
+    <Authors>Kitte414414</Authors>
+    <Product>RoseTrap</Product>
+  </PropertyGroup>
+</Project>

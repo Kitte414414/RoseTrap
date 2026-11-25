@@ -1,0 +1,82 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:RoseTrap.ViewModels"
+             x:Class="RoseTrap.Views.Pages.PresetPage"
+             x:DataType="vm:MainViewModel">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.title">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#f0e7ea" />
+      <Setter Property="Margin" Value="0,10,0,3" />
+    </Style>
+    <Style Selector="TextBlock.icon">
+      <Setter Property="FontSize" Value="20" />
+    </Style>
+    <Style Selector="Grid.meter">
+      <Setter Property="Margin" Value="0,5,0,0" />
+    </Style>
+    <Style Selector="Grid.meter > TextBlock">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="Foreground" Value="#7a7378" />
+    </Style>
+    <Style Selector="Grid.meter ProgressBar">
+      <Setter Property="Height" Value="4" />
+      <Setter Property="MinHeight" Value="4" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="Maximum" Value="100" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Background" Value="#333034" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentGradientH}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+  <ScrollViewer>
+    <StackPanel Margin="24,22,24,30" Spacing="14">
+      <StackPanel Classes="stagger">
+        <TextBlock Classes="eyebrow" Text="06 · PRESET" />
+        <TextBlock Classes="h2" Text="Presets" />
+        <TextBlock Classes="sub" Text="One click changes the whole setup. Tweaking any option makes it Custom." />
+      </StackPanel>
+      <Border Classes="divider stagger" />
+      <UniformGrid Columns="4" Margin="-6,0">
+        <RadioButton Classes="preset stagger" Margin="6" GroupName="preset" IsChecked="{Binding IsPotatoPreset}">
+          <StackPanel>
+            <TextBlock Classes="icon" Text="🥔" />
+            <TextBlock Classes="title" Text="Potato" />
+            <TextBlock Classes="hint" Text="Everything off. For old laptops." Height="32" />
+            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Performance" /><ProgressBar Grid.Column="1" Value="100" /></Grid>
+            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Visuals" /><ProgressBar Grid.Column="1" Value="12" /></Grid>
+          </StackPanel>
+        </RadioButton>
+        <RadioButton Classes="preset stagger" Margin="6" GroupName="preset" IsChecked="{Binding IsBalancedPreset}">
+          <StackPanel>
+            <TextBlock Classes="icon" Text="⚖️" />
+            <TextBlock Classes="title" Text="Balanced" />
+            <TextBlock Classes="hint" Text="Roblox decides. Stable frame rate." Height="32" />
+            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Performance" /><ProgressBar Grid.Column="1" Value="68" /></Grid>
+            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Visuals" /><ProgressBar Grid.Column="1" Value="62" /></Grid>
+          </StackPanel>
+        </RadioButton>
+        <RadioButton Classes="preset stagger" Margin="6" GroupName="preset" IsChecked="{Binding IsQualityPreset}">
+          <StackPanel>
+            <TextBlock Classes="icon" Text="✨" />
+            <TextBlock Classes="title" Text="Quality" />
+            <TextBlock Classes="hint" Text="Max detail, 4× MSAA, high textures." Height="32" />
+            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Performance" /><ProgressBar Grid.Column="1" Value="34" /></Grid>
+            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Visuals" /><ProgressBar Grid.Column="1" Value="96" /></Grid>
+          </StackPanel>
+        </RadioButton>
+        <RadioButton Classes="preset stagger" Margin="6" GroupName="preset" IsChecked="{Binding IsCustomPreset}">
+          <StackPanel>
+            <TextBlock Classes="icon" Text="🌹" />
+            <TextBlock Classes="title" Text="Custom" />
+            <TextBlock Classes="hint" Text="Your own options and flags." Height="32" />
+            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Performance" /><ProgressBar Grid.Column="1" Value="50" /></Grid>
+            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Visuals" /><ProgressBar Grid.Column="1" Value="50" /></Grid>
+          </StackPanel>
+        </RadioButton>
+      </UniformGrid>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

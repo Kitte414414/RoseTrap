@@ -1,0 +1,80 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:RoseTrap.ViewModels"
+             xmlns:c="using:RoseTrap.Controls"
+             x:Class="RoseTrap.Views.Pages.GlobalPage"
+             x:DataType="vm:MainViewModel">
+  <ScrollViewer>
+    <StackPanel Margin="24,22,24,30" Spacing="14">
+      <StackPanel Classes="stagger">
+        <TextBlock Classes="eyebrow" Text="03 · GLOBAL" />
+        <TextBlock Classes="h2" Text="Global" />
+        <TextBlock Classes="sub" Text="Rendering options applied to every game." />
+      </StackPanel>
+      <Border Classes="divider stagger" />
+
+      <Border Classes="callout stagger" IsVisible="{Binding Potato}">
+        <TextBlock Classes="hint" Margin="0" Foreground="{DynamicResource AccentBright}"
+                   Text="Potato mode is on: it overrides the options it controls. Turn it off on the General page to edit them." />
+      </Border>
+
+      <Border Classes="panel stagger">
+        <StackPanel>
+          <Border Classes="panel-glow" />
+          <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Renderer" /></StackPanel>
+          <TextBlock Classes="sub" Text="Graphics backend and anti-aliasing." />
+          <Grid Classes="row" ColumnDefinitions="*,Auto">
+            <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Rendering API" /><TextBlock Classes="hint" Text="Vulkan is often smoother on newer GPUs." /></StackPanel>
+            <c:Segmented Grid.Column="1" Options="Auto,Direct3D 11,Vulkan,OpenGL" SelectedIndex="{Binding RenderApi}" />
+          </Grid>
+          <Border Classes="divider" />
+          <Grid Classes="row" ColumnDefinitions="*,Auto">
+            <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Anti-aliasing (MSAA)" /></StackPanel>
+            <c:Segmented Grid.Column="1" Options="Auto,Off,2×,4×,8×" SelectedIndex="{Binding MsaaIndex}" IsEnabled="{Binding NotPotato}" />
+          </Grid>
+        </StackPanel>
+      </Border>
+
+      <Grid ColumnDefinitions="*,14,*">
+        <Border Classes="panel stagger">
+          <StackPanel>
+            <Border Classes="panel-glow" />
+            <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Detail" /></StackPanel>
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <TextBlock Classes="label" Text="Texture quality" VerticalAlignment="Center" />
+              <ComboBox Grid.Column="1" SelectedIndex="{Binding Textures}" IsEnabled="{Binding NotPotato}" VerticalAlignment="Center">
+                <ComboBoxItem>Automatic</ComboBoxItem><ComboBoxItem>Low</ComboBoxItem>
+                <ComboBoxItem>Medium</ComboBoxItem><ComboBoxItem>High</ComboBoxItem>
+              </ComboBox>
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Lowest mesh detail" /><TextBlock Classes="hint" Text="Distant objects switch to simple models." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding MeshLowest}" IsEnabled="{Binding NotPotato}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <TextBlock Classes="label" Text="Grass" VerticalAlignment="Center" />
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding Grass}" IsEnabled="{Binding NotPotato}" />
+            </Grid>
+          </StackPanel>
+        </Border>
+        <Border Grid.Column="2" Classes="panel stagger">
+          <StackPanel>
+            <Border Classes="panel-glow" />
+            <StackPanel Orientation="Horizontal"><Ellipse Classes="dot" /><TextBlock Classes="h3" Text="Display" /></StackPanel>
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Exclusive fullscreen" /><TextBlock Classes="hint" Text="Alt+Enter switches to true fullscreen." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding ExclusiveFullscreen}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Ignore Windows scaling" /><TextBlock Classes="hint" Text="Sharper image on high-DPI screens." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding DisableDpiScale}" />
+            </Grid>
+          </StackPanel>
+        </Border>
+      </Grid>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
