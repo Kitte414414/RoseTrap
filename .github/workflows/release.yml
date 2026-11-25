@@ -1,0 +1,54 @@
+name: Release
+
+# Push a tag like v0.1.0 to build RoseTrap on Windows and attach the exe to a GitHub release.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Existing tag to (re)build, e.g. v0.1.0"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      DOTNET_NOLOGO: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Test
+        run: dotnet test RoseTrap.sln
+
+      - name: Publish
+        shell: bash
+        run: |
+          version="${TAG#v}"
+          dotnet publish src/RoseTrap -c Release -r win-x64 -p:Version="$version" -o publish
+          mkdir dist
+          cp publish/RoseTrap.exe "dist/RoseTrap-$TAG-win-x64.exe"
+          cd dist && sha256sum "RoseTrap-$TAG-win-x64.exe" > "RoseTrap-$TAG-win-x64.exe.sha256"
+          ls -la
+
+      - name: Upload to release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" dist/* --clobber
+          else
+            gh release create "$TAG" dist/* --title "RoseTrap $TAG" --generate-notes --prerelease
+          fi

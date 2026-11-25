@@ -8,5 +8,6 @@
     <Version>0.1.0</Version>
     <Authors>Kitte414414</Authors>
     <Product>RoseTrap</Product>
+    <DebugType Condition="'$(Configuration)' == 'Release'">none</DebugType>
   </PropertyGroup>
 </Project>

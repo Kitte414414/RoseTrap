@@ -11,6 +11,9 @@
     <PublishTrimmed Condition="'$(Configuration)' == 'Release'">true</PublishTrimmed>
     <PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>
     <SelfContained Condition="'$(Configuration)' == 'Release'">true</SelfContained>
+    <!-- One exe with nothing next to it: Skia/HarfBuzz/ANGLE are unpacked to a temp cache on first run. -->
+    <IncludeNativeLibrariesForSelfExtract Condition="'$(Configuration)' == 'Release'">true</IncludeNativeLibrariesForSelfExtract>
+    <EnableCompressionInSingleFile Condition="'$(Configuration)' == 'Release'">true</EnableCompressionInSingleFile>
     <InvariantGlobalization>true</InvariantGlobalization>
     <TieredPGO>true</TieredPGO>
   </PropertyGroup>

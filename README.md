@@ -4,6 +4,12 @@ A lightweight Roblox launcher for Windows: FPS cap, potato mode, rendering optio
 
 Built with C# / .NET 8 and [Avalonia 11](https://avaloniaui.net) (Skia-rendered, fully styleable, trimmable).
 
+## Download
+
+Grab `RoseTrap-vX.Y.Z-win-x64.exe` from [Releases](https://github.com/Kitte414414/RoseTrap/releases). It's one self-contained file (Windows 10/11, x64), so there's nothing to install and no .NET needed. Windows SmartScreen may warn because the exe isn't code-signed yet: choose *More info → Run anyway*.
+
+New releases are built by GitHub Actions on Windows whenever a `v*` tag is pushed (see `.github/workflows/release.yml`).
+
 ## Layout
 
 | Path | What's there |
