@@ -1,0 +1,995 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RoseTrap</title>
+<style>
+:root{
+  color-scheme:dark;--canvas:#111112;--shell:#1d1d1f;--sidebar:#1c1c1e;--item:#29292c;
+  --item-hover:#2c2a2d;--line:#303033;--text:#e9e6e8;--muted:#999398;--faint:#6f696e;
+  --accent:#d99aa9;--accent-bright:#f3adbd;--accent-rgb:217,154,169;--accent-ink:#2b1219;
+  --field:#19191b;--field-line:#323034;--panel-line:#2e2c30;
+  --ease-out:cubic-bezier(.16,1,.3,1);--ease-spring:cubic-bezier(.34,1.36,.64,1);
+}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;padding:34px 24px;background:radial-gradient(ellipse at 50% 0%,#292326 0%,transparent 52%),var(--canvas);color:var(--text);font:13px/1.4 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select{font:inherit;color:inherit}
+.stage{width:min(100%,1120px);display:grid;gap:16px}
+.topline{display:flex;align-items:center;justify-content:space-between;padding:0 2px;color:var(--muted);font-size:10px;letter-spacing:.09em;text-transform:uppercase}
+.topline strong{color:#d7cbd0;font-weight:600;letter-spacing:.04em;display:inline-block}
+.window{position:relative;width:100%;height:min(690px,76vh);min-height:520px;display:flex;flex-direction:column;overflow:hidden;border:1px solid #393639;border-radius:15px;background:var(--shell);box-shadow:0 24px 70px #0008,0 1px 0 #ffffff08 inset}
+.titlebar{height:42px;flex:0 0 42px;display:flex;align-items:center;justify-content:space-between;padding:0 17px;border-bottom:1px solid var(--line);background:#202022}
+.brand{appearance:none;border:0;background:none;padding:0;cursor:pointer;font-size:14px;font-weight:650;letter-spacing:-.035em;color:#f0e9ec}.brand span{color:var(--accent)}
+.window-actions{display:flex;gap:7px}.window-actions i{width:7px;height:7px;border-radius:50%;background:#514b4f}
+.layout{min-height:0;flex:1;display:flex}
+
+/* Sidebar + sliding active indicator */
+.sidebar{position:relative;width:178px;flex:0 0 178px;padding:17px 11px 13px;background:var(--sidebar);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:5px;transition:width .26s var(--ease-out),flex-basis .26s var(--ease-out),padding .26s var(--ease-out)}
+.nav-group{display:grid;gap:5px;position:relative;z-index:1}.nav-spacer{flex:1;min-height:22px}
+.nav-indicator{position:absolute;left:0;top:0;height:36px;width:0;border-radius:8px;background:#30292d;border:1px solid #49353d;opacity:0;pointer-events:none;z-index:0;
+  transition:transform .42s var(--ease-spring),width .26s var(--ease-out),height .2s,opacity .2s}
+.nav-indicator::before{content:"";position:absolute;left:-1px;top:9px;bottom:9px;width:2px;border-radius:2px;background:var(--accent-bright);box-shadow:0 0 10px rgba(var(--accent-rgb),.8)}
+.nav-item{appearance:none;border:1px solid transparent;background:transparent;color:#c9c3c7;height:36px;width:100%;border-radius:8px;display:flex;align-items:center;gap:11px;padding:0 10px;text-align:left;cursor:pointer;transition:background .16s,color .16s;font:500 12px/1 inherit}
+.nav-item:hover{background:var(--item-hover);color:#f2e9ed}
+.nav-item.active,.nav-item.active:hover{background:transparent;color:#f1dce3}
+.nav-item.active .glyph svg{filter:drop-shadow(0 0 4px rgba(var(--accent-rgb),.35))}
+.nav-item:focus-visible{outline:2px solid rgba(var(--accent-rgb),.6);outline-offset:1px}
+.glyph{width:18px;height:18px;flex:0 0 18px;display:grid;place-items:center;color:var(--accent-bright);transition:transform .3s var(--ease-spring)}.glyph svg{width:17px;height:17px;display:block;overflow:visible}
+.nav-item:hover .glyph{transform:scale(1.08)}
+.nav-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.window.collapsed .sidebar{width:58px;flex-basis:58px;padding:17px 9px 13px}
+.window.collapsed .nav-item{justify-content:center;padding:0}.window.collapsed .nav-label{display:none}
+
+/* Views: every module lives in its own layer so switches can cross-animate */
+.content{flex:1;min-width:0;background:#1e1e20;position:relative;overflow:hidden}
+.views{position:absolute;inset:0}
+.view{position:absolute;inset:0;visibility:hidden;pointer-events:none}
+.view.is-active{visibility:visible;pointer-events:auto}
+.view.is-leaving{visibility:visible;pointer-events:none;z-index:0}
+.view.is-active:not(.is-leaving){z-index:1}
+.view-scroll{position:absolute;inset:0;overflow:auto;padding:22px 24px 30px;scrollbar-width:thin;scrollbar-color:#3a363a transparent}
+.view-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px;padding-bottom:16px;border-bottom:1px solid #29292c;position:relative}
+.view-head::after{content:"";position:absolute;left:0;bottom:-1px;width:64px;height:1px;background:linear-gradient(90deg,var(--accent-bright),transparent);transform-origin:left}
+.eyebrow{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--accent);margin-bottom:5px}
+.view-head h2{margin:0;font-size:19px;font-weight:600;letter-spacing:-.01em;color:#efe7ea}
+.view-head p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.head-actions{display:flex;gap:8px;flex-wrap:wrap}
+
+/* Panels */
+.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:14px}
+.panel{grid-column:span 6;position:relative;background:linear-gradient(180deg,#242326,#202022 60%);border:1px solid var(--panel-line);border-radius:12px;padding:15px 16px 13px;box-shadow:0 1px 0 #ffffff07 inset,0 12px 28px -14px #000a;transition:border-color .2s,box-shadow .25s}
+.panel::before{content:"";position:absolute;inset:-1px -1px auto;height:1px;border-radius:12px 12px 0 0;background:linear-gradient(90deg,transparent,rgba(var(--accent-rgb),.35),transparent);opacity:.55}
+.panel:hover{border-color:#3a363b}
+.span-4{grid-column:span 4}.span-5{grid-column:span 5}.span-7{grid-column:span 7}.span-8{grid-column:span 8}.span-12{grid-column:span 12}
+.panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px}
+.panel-head h3{margin:0;font-size:12.5px;font-weight:600;color:#eee6e9;display:flex;align-items:center;gap:8px}
+.panel-head h3 .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px rgba(var(--accent-rgb),.7)}
+.panel-head p{margin:3px 0 0;color:#8a8388;font-size:11px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:11px 0;border-top:1px solid #2a292c}
+.panel-head+.row,.row:first-child{border-top:0}
+.row-label{min-width:0}.row-label b{display:block;font-weight:500;color:#e6dfe3;font-size:12.5px}.row-label small{display:block;color:#857e83;font-size:11px;margin-top:2px}
+.stack{display:grid;gap:7px;padding:11px 0;border-top:1px solid #2a292c}
+.stack-top{display:flex;justify-content:space-between;align-items:baseline}
+.value{font-variant-numeric:tabular-nums;font-size:12px;color:var(--accent-bright);background:rgba(var(--accent-rgb),.1);border:1px solid rgba(var(--accent-rgb),.22);padding:2px 8px;border-radius:20px;min-width:52px;text-align:center;display:inline-block;transition:transform .18s var(--ease-spring)}
+.value.bump{transform:scale(1.08)}
+.ticks{display:flex;justify-content:space-between;color:#625c61;font-size:9.5px;letter-spacing:.04em;padding:0 2px}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;padding-top:12px}
+
+/* Buttons */
+.btn{position:relative;overflow:hidden;isolation:isolate;height:32px;padding:0 14px;border-radius:8px;border:1px solid #3a363a;background:#2a282b;color:#ebe4e7;font-weight:500;font-size:12px;display:inline-flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap;
+  transition:background .16s,border-color .16s,box-shadow .25s,transform .12s,filter .16s}
+.btn svg{width:14px;height:14px}
+.btn:hover{background:#322f33;border-color:#4a4247}
+.btn:active{transform:translateY(1px) scale(.98)}
+.btn:focus-visible{outline:2px solid rgba(var(--accent-rgb),.6);outline-offset:2px}
+.btn-primary{background:linear-gradient(180deg,var(--accent-bright),var(--accent));color:var(--accent-ink);border-color:transparent;font-weight:600;box-shadow:0 8px 20px -10px rgba(var(--accent-rgb),.9),inset 0 1px 0 #ffffff55}
+.btn-primary:hover{background:linear-gradient(180deg,var(--accent-bright),var(--accent));filter:brightness(1.07);border-color:transparent;box-shadow:0 10px 26px -8px rgba(var(--accent-rgb),.95),inset 0 1px 0 #ffffff66}
+.btn-ghost{background:transparent;border-color:transparent;color:#a9a1a6}.btn-ghost:hover{background:#29272a;border-color:#332f33;color:#eee}
+.btn-danger{background:#33201f;border-color:#57302f;color:#f2aeb0}.btn-danger:hover{background:#3f2524;border-color:#6d3a39}
+.btn-lg{height:38px;padding:0 18px;font-size:12.5px}
+.ripple{position:absolute;border-radius:50%;pointer-events:none;background:currentColor;opacity:.25;z-index:-1}
+.icon-btn{appearance:none;width:28px;height:28px;border-radius:7px;border:1px solid transparent;background:transparent;color:#8d868b;display:grid;place-items:center;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.icon-btn:hover{background:#33201f;color:#f2aeb0;border-color:#57302f}.icon-btn svg{width:13px;height:13px}
+
+/* Switch */
+.switch{flex:0 0 auto;width:38px;height:22px;border:1px solid #4a3f45;background:#2f2a2d;border-radius:20px;padding:2px;cursor:pointer;transition:background .22s,border-color .22s,box-shadow .22s}
+.switch::after{content:"";display:block;width:16px;height:16px;border-radius:50%;background:#9c8d94;box-shadow:0 1px 3px #0007;transition:transform .32s var(--ease-spring),background .22s,width .18s}
+.switch:active::after{width:19px}
+.switch[aria-checked="true"]{background:rgba(var(--accent-rgb),.38);border-color:rgba(var(--accent-rgb),.6);box-shadow:0 0 14px -4px rgba(var(--accent-rgb),.8)}
+.switch[aria-checked="true"]::after{transform:translateX(16px);background:#fbe3e9}
+.switch[aria-checked="true"]:active::after{transform:translateX(13px)}
+.switch.sm{width:32px;height:18px}.switch.sm::after{width:12px;height:12px}.switch.sm[aria-checked="true"]::after{transform:translateX(14px)}
+.switch:focus-visible{outline:2px solid rgba(var(--accent-rgb),.6);outline-offset:2px}
+
+/* Slider */
+.slider{-webkit-appearance:none;appearance:none;width:100%;height:20px;margin:0;background:transparent;cursor:pointer;--p:50%}
+.slider::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:linear-gradient(90deg,var(--accent) 0,var(--accent-bright) var(--p),#363337 var(--p))}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;margin-top:-6px;border-radius:50%;background:#fbe6ec;border:3px solid var(--accent);box-shadow:0 0 0 0 rgba(var(--accent-rgb),.25),0 2px 6px #0008;transition:box-shadow .2s,transform .18s var(--ease-spring)}
+.slider:hover::-webkit-slider-thumb{box-shadow:0 0 0 6px rgba(var(--accent-rgb),.16),0 2px 6px #0008}
+.slider:active::-webkit-slider-thumb{transform:scale(1.18);box-shadow:0 0 0 8px rgba(var(--accent-rgb),.2),0 2px 6px #0008}
+.slider::-moz-range-track{height:4px;border-radius:4px;background:#363337}
+.slider::-moz-range-progress{height:4px;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent-bright))}
+.slider::-moz-range-thumb{width:10px;height:10px;border-radius:50%;background:#fbe6ec;border:3px solid var(--accent)}
+.slider:focus-visible{outline:none}.slider:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 6px rgba(var(--accent-rgb),.3)}
+.slider:disabled{opacity:.4;cursor:not-allowed}
+
+/* Segmented control with sliding thumb */
+.seg{position:relative;display:inline-grid;grid-auto-flow:column;grid-auto-columns:minmax(0,auto);background:var(--field);border:1px solid var(--field-line);border-radius:9px;padding:3px;gap:2px}
+.seg button{position:relative;z-index:1;appearance:none;border:0;background:none;color:#a39ba0;height:26px;padding:0 11px;border-radius:6px;cursor:pointer;font-size:11.5px;font-weight:500;transition:color .2s}
+.seg button:hover{color:#eee}.seg button[aria-pressed="true"]{color:#f8e9ee}
+.seg-thumb{position:absolute;left:0;top:3px;height:26px;border-radius:6px;background:#3a2f34;border:1px solid #57414a;box-shadow:0 2px 8px #0006,inset 0 1px 0 #ffffff10;transition:transform .38s var(--ease-spring),width .3s var(--ease-out)}
+
+/* Inputs */
+.select,.input{height:32px;border-radius:8px;border:1px solid var(--field-line);background:var(--field);color:#e9e3e6;padding:0 11px;font-size:12px;outline:none;transition:border-color .15s,box-shadow .2s}
+.select{appearance:none;padding-right:30px;cursor:pointer;background:var(--field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23a39ba0' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 11px center}
+.select:hover,.input:hover{border-color:#433e43}
+.select:focus,.input:focus{border-color:rgba(var(--accent-rgb),.65);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.15)}
+.mono{font-family:"Cascadia Mono",Consolas,ui-monospace,monospace}
+.input.invalid{border-color:#b85a62;box-shadow:0 0 0 3px #b85a6226}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding-top:8px}
+.stat{background:var(--field);border:1px solid #2b2a2d;border-radius:10px;padding:10px 12px}
+.stat span{display:block;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#7a7378}
+.stat b{display:block;margin-top:4px;font-size:15px;font-weight:600;color:#eee5e9;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;padding:3px 9px;border-radius:20px;background:#253027;border:1px solid #35503b;color:#a9d6b0}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor}
+.chip.off{background:#2b2a2d;border-color:#3a383c;color:#8f888d}
+.checklist{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px;font-size:11.5px;color:#a69ea3}
+.checklist li{display:flex;align-items:center;gap:8px;transition:color .25s}
+.checklist li::before{content:"";width:14px;height:14px;border-radius:4px;border:1px solid #47404a;background:#1b1a1c;transition:background .25s,border-color .25s}
+.potato-on .checklist li{color:#e9dfe3}
+.potato-on .checklist li::before{background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='8' viewBox='0 0 10 8'%3E%3Cpath d='M1 4l3 3 5-6' fill='none' stroke='%232b1219' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center;border-color:transparent}
+
+/* FFlags editor */
+.flag-tools{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.flag-tools .input{flex:1}
+.flag-list{display:grid;gap:6px}
+.flag-row{display:grid;grid-template-columns:auto minmax(0,1fr) 120px 62px auto;gap:10px;align-items:center;height:42px;padding:0 6px 0 10px;border-radius:9px;background:var(--field);border:1px solid #2b2a2d;overflow:hidden;transition:border-color .15s,opacity .2s}
+.flag-row:hover{border-color:#3b373c}
+.flag-row.disabled .flag-name,.flag-row.disabled .flag-value{opacity:.45}
+.flag-name{font-size:11.5px;color:#e5dce0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.flag-value{height:28px;font-size:11.5px}
+.pill{font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;text-align:center;padding:3px 0;border-radius:5px;border:1px solid}
+.pill.Bool{color:#9cc9e8;border-color:#2f4a5c;background:#1d2a33}.pill.Int{color:#e8c99c;border-color:#5c4a2f;background:#2e261c}.pill.String{color:#b9a7ec;border-color:#46395f;background:#252032}.pill.Log{color:#9fd6b0;border-color:#2f5a3e;background:#1c2c22}
+.flag-add{display:grid;grid-template-columns:minmax(0,1fr) 140px auto;gap:8px;margin-top:12px;padding-top:12px;border-top:1px dashed #333035}
+.empty{padding:22px;text-align:center;color:#6f696e;font-size:12px;border:1px dashed #333035;border-radius:10px}
+
+/* Preset cards */
+.presets{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.preset{appearance:none;text-align:left;position:relative;border:1px solid var(--panel-line);background:linear-gradient(180deg,#242326,#1f1f21);border-radius:12px;padding:14px;cursor:pointer;transition:border-color .2s,transform .25s var(--ease-spring),box-shadow .25s}
+.preset:hover{transform:translateY(-2px);border-color:#433d42}
+.preset[aria-checked="true"]{border-color:rgba(var(--accent-rgb),.75);box-shadow:0 0 0 3px rgba(var(--accent-rgb),.13),0 14px 30px -16px rgba(var(--accent-rgb),.6)}
+.preset .ico{font-size:20px;line-height:1}
+.preset h4{margin:10px 0 3px;font-size:13px;font-weight:600;color:#f0e7ea}
+.preset p{margin:0 0 12px;font-size:11px;color:#8a8388;min-height:30px}
+.meter{display:grid;grid-template-columns:62px 1fr;align-items:center;gap:8px;font-size:10px;color:#7a7378;margin-top:5px}
+.meter i{height:4px;border-radius:4px;background:#333034;position:relative;overflow:hidden}
+.meter i::after{content:"";position:absolute;inset:0 auto 0 0;width:var(--v);border-radius:inherit;background:linear-gradient(90deg,var(--accent),var(--accent-bright))}
+.preset .check{position:absolute;top:12px;right:12px;width:18px;height:18px;border-radius:50%;border:1px solid #47404a;display:grid;place-items:center;transition:background .2s,border-color .2s,transform .3s var(--ease-spring)}
+.preset[aria-checked="true"] .check{background:var(--accent);border-color:transparent;transform:scale(1.05)}
+.preset[aria-checked="true"] .check::after{content:"";width:7px;height:4px;border:solid var(--accent-ink);border-width:0 0 2px 2px;transform:translateY(-1px) rotate(-45deg)}
+
+/* Shader preview */
+.preview{position:relative;height:178px;border-radius:10px;overflow:hidden;border:1px solid #2b2a2d;margin-top:8px;
+  background:radial-gradient(circle at 72% 26%,#ffe3b0 0 6%,transparent 7%),linear-gradient(180deg,#86b7e8 0%,#f2c1b5 58%,#5e8a4e 58%,#3f6a36 100%);transition:filter .12s}
+.preview::before{content:"";position:absolute;left:12%;bottom:28%;width:22%;height:34%;background:#c7655f;box-shadow:inset -12px 0 0 #a54f4b;clip-path:polygon(0 30%,50% 0,100% 30%,100% 100%,0 100%)}
+.preview::after{content:"";position:absolute;right:16%;bottom:30%;width:12%;height:40%;border-radius:50% 50% 8% 8%;background:radial-gradient(circle at 40% 35%,#79b45c,#3d6d33);box-shadow:-60px 18px 0 -6px #4f8b41}
+.preview-label{position:absolute;left:10px;top:10px;font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:#fff;background:#0006;padding:3px 8px;border-radius:20px;z-index:1}
+
+/* Swatches */
+.swatches{display:flex;gap:10px}
+.swatch{appearance:none;width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;background:var(--c);box-shadow:inset 0 0 0 2px #1e1e20;transition:transform .25s var(--ease-spring),border-color .2s}
+.swatch:hover{transform:scale(1.1)}.swatch[aria-checked="true"]{border-color:var(--c);transform:scale(1.08)}
+
+/* Toasts */
+.toasts{position:absolute;right:16px;bottom:16px;display:grid;gap:8px;z-index:20;pointer-events:none}
+.toast{display:flex;align-items:center;gap:9px;padding:9px 13px;border-radius:10px;background:#2a2629ee;border:1px solid #4a3d43;box-shadow:0 12px 30px #0008;font-size:12px;color:#f0e6ea;backdrop-filter:blur(6px)}
+.toast::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent-bright);box-shadow:0 0 8px var(--accent-bright)}
+
+/* Welcome */
+.welcome-screen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;padding:22px 24px 34px}
+.welcome-title{font-size:clamp(18px,2vw,22px);line-height:1.2;font-weight:560;letter-spacing:.025em;color:#e8dfe2;margin:0 0 2px;z-index:1;text-shadow:0 1px 14px #0008}
+.welcome-subtitle{margin:6px 0 0;color:#877b81;font-size:10px;letter-spacing:.23em;text-transform:uppercase;z-index:1}
+.rose-wrap{position:relative;flex:0 1 auto;width:min(100%,560px);height:min(76%,470px);min-height:250px;z-index:1}
+#roseCanvas{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain;cursor:grab;touch-action:none}
+#roseCanvas.dragging{cursor:grabbing}
+.rose-glow{position:absolute;width:46%;height:34%;left:27%;top:12%;background:radial-gradient(ellipse,#a64f6828 0%,#6d334018 42%,transparent 73%);filter:blur(18px);pointer-events:none}
+.vine-frame{position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:.62}
+.welcome-foot{position:absolute;bottom:20px;left:24px;right:24px;display:flex;justify-content:space-between;align-items:center;color:#645d61;font-size:9px;letter-spacing:.12em;text-transform:uppercase;z-index:2}
+.welcome-foot span:last-child{color:#8a747c}
+
+.controls{display:flex;align-items:center;justify-content:space-between;gap:16px;color:var(--muted);font-size:12px}
+.toggle-wrap{display:flex;align-items:center;gap:10px}.note{color:#777177;font-size:11px}
+
+@media(max-width:900px){.span-4,.span-5,.span-6,.span-7,.span-8{grid-column:span 12}.panel{grid-column:span 12}.presets{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){body{padding:16px 10px}.window{height:calc(100vh - 110px);min-height:460px}.sidebar{width:154px;flex-basis:154px}.welcome-foot{left:14px;right:14px;bottom:14px}.flag-row{grid-template-columns:auto minmax(0,1fr) 90px auto}.flag-row .pill{display:none}}
+@media(max-width:520px){.topline span{display:none}.sidebar{width:52px;flex-basis:52px;padding:12px 7px}.sidebar .nav-item{justify-content:center;padding:0}.sidebar .nav-label{display:none}.welcome-title{font-size:18px}.welcome-subtitle,.welcome-foot{font-size:8px}}
+@media(prefers-reduced-motion:reduce){.nav-item,.sidebar,.switch::after,.seg-thumb,.nav-indicator,.preset{transition:none}}
+</style>
+</head>
+<body>
+<main class="stage">
+  <div class="topline"><strong id="crumb">RoseTrap / Welcome</strong><span>Interface · Personal build</span></div>
+  <section class="window" id="window">
+    <header class="titlebar"><button class="brand" id="brandHome" title="Back to welcome">Rose<span>Trap</span></button><div class="window-actions" aria-hidden="true"><i></i><i></i><i></i></div></header>
+    <div class="layout">
+      <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+        <span class="nav-indicator" id="navIndicator" aria-hidden="true"></span>
+        <nav class="nav-group"><button class="nav-item " data-name="General"><span class="glyph"><svg viewBox="0 0 44 44" aria-hidden="true" focusable="false"><path d="M 31.00 11.00 Q 28.00 8.00 26.50 8.00 Q 25.00 8.00 24.50 8.50 Q 24.00 9.00 24.00 15.00 Q 24.00 21.00 22.50 22.50 Q 21.00 24.00 15.00 24.00 Q 9.00 24.00 8.50 24.50 Q 8.00 25.00 8.00 26.50 Q 8.00 28.00 11.00 31.00 Q 14.00 34.00 14.50 34.00 Q 15.00 34.00 15.50 34.50 Q 16.00 35.00 21.50 35.00 Q 27.00 35.00 27.50 34.50 Q 28.00 34.00 28.50 34.00 Q 29.00 34.00 31.50 31.50 Q 34.00 29.00 34.00 28.50 Q 34.00 28.00 34.50 27.50 Q 35.00 27.00 35.00 21.50 Q 35.00 16.00 34.50 15.50 Q 34.00 15.00 34.00 14.50 Q 34.00 14.00 31.00 11.00 Z M 19.00 5.50 Q 19.00 5.00 17.00 5.00 Q 15.00 5.00 14.00 6.00 Q 13.00 7.00 11.50 7.50 Q 10.00 8.00 9.00 9.00 Q 8.00 10.00 7.50 11.50 Q 7.00 13.00 6.00 14.00 Q 5.00 15.00 5.00 17.00 Q 5.00 19.00 5.50 19.00 Q 6.00 19.00 6.50 19.50 Q 7.00 20.00 8.00 20.00 Q 9.00 20.00 9.50 19.50 Q 10.00 19.00 11.50 19.00 Q 13.00 19.00 13.50 19.50 Q 14.00 20.00 15.50 20.00 Q 17.00 20.00 18.50 18.50 Q 20.00 17.00 20.00 15.50 Q 20.00 14.00 19.50 13.50 Q 19.00 13.00 19.00 12.00 Q 19.00 11.00 19.50 10.50 Q 20.00 10.00 20.00 8.50 Q 20.00 7.00 19.50 6.50 Q 19.00 6.00 19.00 5.50 Z" fill="currentColor" fill-rule="evenodd" stroke="#ffd4de" stroke-width=".42" stroke-linejoin="round"/></svg></span><span class="nav-label">General</span></button>
+<button class="nav-item " data-name="Global"><span class="glyph"><svg viewBox="0 0 44 44" aria-hidden="true" focusable="false"><path d="M 21.50 5.00 Q 17.00 5.00 16.50 5.50 Q 16.00 6.00 14.50 6.50 Q 13.00 7.00 10.50 9.50 Q 8.00 12.00 8.00 12.50 Q 8.00 13.00 7.50 13.50 Q 7.00 14.00 7.00 15.00 Q 7.00 16.00 6.00 17.50 Q 5.00 19.00 5.00 20.50 Q 5.00 22.00 5.50 22.50 Q 6.00 23.00 6.00 24.00 Q 6.00 25.00 6.50 25.50 Q 7.00 26.00 7.00 27.00 Q 7.00 28.00 7.50 28.50 Q 8.00 29.00 8.00 29.50 Q 8.00 30.00 10.50 32.50 Q 13.00 35.00 13.50 35.00 Q 14.00 35.00 14.50 35.50 Q 15.00 36.00 16.50 36.00 Q 18.00 36.00 18.50 36.50 Q 19.00 37.00 20.50 37.00 Q 22.00 37.00 22.50 36.50 Q 23.00 36.00 24.00 36.00 Q 25.00 36.00 26.50 34.50 Q 28.00 33.00 29.50 33.00 Q 31.00 33.00 31.50 31.50 Q 32.00 30.00 33.50 28.50 Q 35.00 27.00 35.50 27.00 Q 36.00 27.00 36.00 26.50 Q 36.00 26.00 37.00 24.50 Q 38.00 23.00 38.00 21.00 Q 38.00 19.00 37.50 18.50 Q 37.00 18.00 37.00 17.00 Q 37.00 16.00 36.50 15.50 Q 36.00 15.00 35.00 12.50 Q 34.00 10.00 33.50 10.00 Q 33.00 10.00 31.50 8.50 Q 30.00 7.00 29.50 7.00 Q 29.00 7.00 27.50 6.00 Q 26.00 5.00 21.50 5.00 Z M 28.50 23.00 Q 30.00 23.00 30.50 23.50 Q 31.00 24.00 31.00 25.00 Q 31.00 26.00 30.00 27.00 Q 29.00 28.00 28.50 28.00 Q 28.00 28.00 26.50 30.00 Q 25.00 32.00 24.00 31.00 Q 23.00 30.00 23.00 29.00 Q 23.00 28.00 23.50 27.50 Q 24.00 27.00 24.00 26.50 Q 24.00 26.00 25.50 24.50 Q 27.00 23.00 28.50 23.00 Z M 26.50 17.50 Q 26.00 17.00 26.50 16.50 Q 27.00 16.00 27.50 16.00 Q 28.00 16.00 28.50 16.50 Q 29.00 17.00 28.50 17.50 Q 28.00 18.00 27.50 18.00 Q 27.00 18.00 26.50 17.50 Z M 14.00 18.00 Q 13.00 17.00 13.50 16.50 Q 14.00 16.00 15.00 16.00 Q 16.00 16.00 16.50 16.50 Q 17.00 17.00 17.00 17.50 Q 17.00 18.00 16.50 18.50 Q 16.00 19.00 15.50 19.00 Q 15.00 19.00 14.00 18.00 Z" fill="currentColor" fill-rule="evenodd" stroke="#ffd4de" stroke-width=".42" stroke-linejoin="round"/></svg></span><span class="nav-label">Global</span></button>
+<button class="nav-item " data-name="FFlags"><span class="glyph"><svg viewBox="0 0 44 44" aria-hidden="true" focusable="false"><path d="M 38.00 18.50 Q 38.00 10.00 37.00 9.00 Q 36.00 8.00 31.50 8.00 Q 27.00 8.00 25.00 6.50 Q 23.00 5.00 22.00 5.00 Q 21.00 5.00 20.50 4.50 Q 20.00 4.00 19.50 4.50 Q 19.00 5.00 12.50 5.00 Q 6.00 5.00 5.50 5.50 Q 5.00 6.00 5.00 14.50 Q 5.00 23.00 4.50 23.50 Q 4.00 24.00 4.00 29.50 Q 4.00 35.00 4.50 35.50 Q 5.00 36.00 5.00 36.50 Q 5.00 37.00 6.00 37.00 Q 7.00 37.00 7.50 36.50 Q 8.00 36.00 8.00 32.50 Q 8.00 29.00 8.50 28.50 Q 9.00 28.00 9.00 27.50 Q 9.00 27.00 9.50 26.50 Q 10.00 26.00 11.00 26.00 Q 12.00 26.00 12.50 25.50 Q 13.00 25.00 16.00 25.00 Q 19.00 25.00 19.50 25.50 Q 20.00 26.00 21.00 26.00 Q 22.00 26.00 24.00 27.50 Q 26.00 29.00 30.50 29.00 Q 35.00 29.00 35.50 28.50 Q 36.00 28.00 36.50 28.00 Q 37.00 28.00 37.50 27.50 Q 38.00 27.00 38.00 18.50 Z" fill="currentColor" fill-rule="evenodd" stroke="#ffd4de" stroke-width=".42" stroke-linejoin="round"/></svg></span><span class="nav-label">FFlags</span></button>
+<button class="nav-item " data-name="FFlags Settings"><span class="glyph"><svg viewBox="0 0 44 44" aria-hidden="true" focusable="false"><path d="M 8.50 8.00 Q 8.00 8.00 8.00 8.50 Q 8.00 9.00 7.50 9.50 Q 7.00 10.00 7.00 21.50 Q 7.00 33.00 7.50 33.50 Q 8.00 34.00 8.00 34.50 Q 8.00 35.00 8.50 35.00 Q 9.00 35.00 9.50 35.50 Q 10.00 36.00 21.50 36.00 Q 33.00 36.00 33.50 35.50 Q 34.00 35.00 34.50 35.00 Q 35.00 35.00 35.00 34.50 Q 35.00 34.00 35.50 33.50 Q 36.00 33.00 36.00 21.50 Q 36.00 10.00 35.50 9.50 Q 35.00 9.00 35.00 8.50 Q 35.00 8.00 34.50 8.00 Q 34.00 8.00 33.50 7.50 Q 33.00 7.00 21.50 7.00 Q 10.00 7.00 9.50 7.50 Q 9.00 8.00 8.50 8.00 Z M 17.00 17.00 Q 19.00 15.00 21.50 15.00 Q 24.00 15.00 26.00 17.00 Q 28.00 19.00 28.00 21.50 Q 28.00 24.00 26.00 26.00 Q 24.00 28.00 21.50 28.00 Q 19.00 28.00 17.00 26.00 Q 15.00 24.00 15.00 21.50 Q 15.00 19.00 17.00 17.00 Z M 21.50 19.00 Q 21.00 19.00 20.00 20.00 Q 19.00 21.00 19.00 21.50 Q 19.00 22.00 20.00 23.00 Q 21.00 24.00 21.50 24.00 Q 22.00 24.00 23.00 23.00 Q 24.00 22.00 24.00 21.50 Q 24.00 21.00 23.00 20.00 Q 22.00 19.00 21.50 19.00 Z" fill="currentColor" fill-rule="evenodd" stroke="#ffd4de" stroke-width=".42" stroke-linejoin="round"/></svg></span><span class="nav-label">FFlags Settings</span></button>
+<button class="nav-item " data-name="Preset"><span class="glyph"><svg viewBox="0 0 44 44" aria-hidden="true" focusable="false"><path d="M 25.00 5.50 Q 23.00 4.00 22.50 4.00 Q 22.00 4.00 20.00 5.50 Q 18.00 7.00 16.50 7.50 Q 15.00 8.00 13.50 9.50 Q 12.00 11.00 11.50 11.00 Q 11.00 11.00 10.50 11.50 Q 10.00 12.00 9.00 12.00 Q 8.00 12.00 8.00 13.50 Q 8.00 15.00 8.50 15.50 Q 9.00 16.00 9.00 17.00 Q 9.00 18.00 8.00 19.50 Q 7.00 21.00 7.50 22.50 Q 8.00 24.00 8.50 24.00 Q 9.00 24.00 9.50 24.50 Q 10.00 25.00 10.00 26.00 Q 10.00 27.00 9.00 28.00 Q 8.00 29.00 8.00 29.50 Q 8.00 30.00 8.50 30.50 Q 9.00 31.00 11.00 31.00 Q 13.00 31.00 14.50 33.00 Q 16.00 35.00 17.00 35.00 Q 18.00 35.00 20.00 36.50 Q 22.00 38.00 24.00 36.50 Q 26.00 35.00 27.50 35.00 Q 29.00 35.00 30.50 33.00 Q 32.00 31.00 33.50 31.00 Q 35.00 31.00 35.50 30.50 Q 36.00 30.00 36.00 29.00 Q 36.00 28.00 34.00 26.00 Q 32.00 24.00 32.50 23.50 Q 33.00 23.00 34.00 23.00 Q 35.00 23.00 35.50 23.50 Q 36.00 24.00 36.50 24.00 Q 37.00 24.00 37.50 23.50 Q 38.00 23.00 38.00 22.00 Q 38.00 21.00 36.50 19.50 Q 35.00 18.00 36.00 16.50 Q 37.00 15.00 37.00 13.50 Q 37.00 12.00 36.00 12.00 Q 35.00 12.00 34.50 11.50 Q 34.00 11.00 33.50 11.00 Q 33.00 11.00 31.50 9.50 Q 30.00 8.00 28.50 7.50 Q 27.00 7.00 25.00 5.50 Z M 27.00 29.50 Q 27.00 29.00 27.50 28.50 Q 28.00 28.00 28.50 28.00 Q 29.00 28.00 29.50 28.50 Q 30.00 29.00 30.00 29.50 Q 30.00 30.00 29.50 30.50 Q 29.00 31.00 28.50 31.00 Q 28.00 31.00 27.50 30.50 Q 27.00 30.00 27.00 29.50 Z M 22.00 25.50 Q 22.00 25.00 22.50 24.50 Q 23.00 24.00 24.00 24.00 Q 25.00 24.00 26.00 25.00 Q 27.00 26.00 27.00 26.50 Q 27.00 27.00 26.50 27.50 Q 26.00 28.00 25.00 28.00 Q 24.00 28.00 23.00 27.00 Q 22.00 26.00 22.00 25.50 Z M 12.50 23.50 Q 12.00 23.00 12.00 22.00 Q 12.00 21.00 12.50 20.50 Q 13.00 20.00 13.50 20.00 Q 14.00 20.00 15.00 21.00 Q 16.00 22.00 15.00 23.00 Q 14.00 24.00 13.50 24.00 Q 13.00 24.00 12.50 23.50 Z" fill="currentColor" fill-rule="evenodd" stroke="#ffd4de" stroke-width=".42" stroke-linejoin="round"/></svg></span><span class="nav-label">Preset</span></button>
+<button class="nav-item " data-name="Shaders"><span class="glyph"><svg viewBox="0 0 44 44" aria-hidden="true" focusable="false"><path d="M 21.50 8.00 Q 9.00 8.00 7.00 10.50 Q 5.00 13.00 5.00 21.00 Q 5.00 29.00 5.50 29.50 Q 6.00 30.00 6.50 31.50 Q 7.00 33.00 8.00 34.00 Q 9.00 35.00 21.50 35.00 Q 34.00 35.00 36.00 32.50 Q 38.00 30.00 38.00 22.00 Q 38.00 14.00 37.50 13.50 Q 37.00 13.00 36.50 11.50 Q 36.00 10.00 35.00 9.00 Q 34.00 8.00 21.50 8.00 Z M 30.00 24.00 Q 31.00 25.00 31.00 26.50 Q 31.00 28.00 29.50 29.00 Q 28.00 30.00 27.50 29.50 Q 27.00 29.00 20.50 29.00 Q 14.00 29.00 13.00 28.00 Q 12.00 27.00 12.00 26.50 Q 12.00 26.00 13.00 25.00 Q 14.00 24.00 18.00 24.00 Q 22.00 24.00 23.50 23.00 Q 25.00 22.00 25.50 22.00 Q 26.00 22.00 26.50 22.50 Q 27.00 23.00 28.00 23.00 Q 29.00 23.00 30.00 24.00 Z" fill="currentColor" fill-rule="evenodd" stroke="#ffd4de" stroke-width=".42" stroke-linejoin="round"/></svg></span><span class="nav-label">Shaders</span></button></nav>
+        <div class="nav-spacer"></div>
+        <nav class="nav-group"><button class="nav-item " data-name="Settings"><span class="glyph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.2 2.8h3.6l.55 2.05c.5.15.96.35 1.4.6l1.95-1.05 2.55 2.55-1.05 1.95c.25.44.45.9.6 1.4l2.05.55v3.6l-2.05.55c-.15.5-.35.96-.6 1.4l1.05 1.95-2.55 2.55-1.95-1.05c-.44.25-.9.45-1.4.6l-.55 2.05h-3.6l-.55-2.05c-.5-.15-.96-.35-1.4-.6L6.3 20.55 3.75 18l1.05-1.95c-.25-.44-.45-.9-.6-1.4l-2.05-.55v-3.6l2.05-.55c.15-.5.35-.96.6-1.4L3.75 6.6 6.3 4.05l1.95 1.05c.44-.25.9-.45 1.4-.6z" fill="currentColor"/><circle cx="12" cy="12.25" r="3.1" fill="#252225"/><circle cx="12" cy="12.25" r="1.45" fill="currentColor"/></svg></span><span class="nav-label">Settings</span></button>
+<button class="nav-item " data-name="Appearance"><span class="glyph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.2h16v13.6H4z" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7 8.2h10M7 12h10M7 15.8h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="10" cy="8.2" r="1.6" fill="#252225" stroke="currentColor" stroke-width="1.2"/><circle cx="15" cy="12" r="1.6" fill="#252225" stroke="currentColor" stroke-width="1.2"/><circle cx="9" cy="15.8" r="1.6" fill="#252225" stroke="currentColor" stroke-width="1.2"/></svg></span><span class="nav-label">Appearance</span></button></nav>
+      </aside>
+      <section class="content" id="content">
+        <div class="views" id="views">
+
+          <!-- 00 · Welcome -->
+          <div class="view is-active" data-view="Welcome">
+            <div class="welcome-screen">
+              <svg class="vine-frame" id="vineFrame" aria-hidden="true"></svg>
+              <h1 class="welcome-title">Select a module</h1>
+              <div class="rose-wrap"><div class="rose-glow"></div><canvas id="roseCanvas" aria-label="Rotating rose drawn with text characters. Drag to spin."></canvas></div>
+              <p class="welcome-subtitle">RoseTrap · Control Center</p>
+              <div class="welcome-foot"><span>Choose a section to begin · drag the rose</span><span>01 / Welcome</span></div>
+            </div>
+          </div>
+
+          <!-- 01 · General -->
+          <div class="view" data-view="General"><div class="view-scroll">
+            <header class="view-head stagger"><div><div class="eyebrow">02 · General</div><h2>General</h2><p>Frame rate, graphics level and launching.</p></div>
+              <div class="head-actions"><button class="btn btn-ghost" data-toast="Defaults restored">Reset</button><button class="btn btn-primary" data-toast="Launching Roblox…"><svg viewBox="0 0 16 16"><path d="M5 3.5v9l7-4.5z" fill="currentColor"/></svg>Launch Roblox</button></div></header>
+            <div class="grid">
+              <section class="panel span-7 stagger">
+                <div class="panel-head"><div><h3><span class="dot"></span>Frame rate</h3><p>Caps how many frames Roblox renders per second.</p></div></div>
+                <div class="stack">
+                  <div class="stack-top"><div class="row-label"><b>FPS cap</b></div><span class="value" id="fpsOut">144 FPS</span></div>
+                  <input class="slider" id="fpsSlider" type="range" min="0" max="8" step="1" value="4" aria-label="FPS cap">
+                  <div class="ticks"><span>30</span><span>60</span><span>75</span><span>120</span><span>144</span><span>165</span><span>240</span><span>360</span><span>∞</span></div>
+                </div>
+                <div class="row"><div class="row-label"><b>Lower FPS in background</b><small>Drops to 15 FPS while Roblox is unfocused.</small></div><button class="switch" role="switch" aria-checked="true" aria-label="Lower FPS in background"></button></div>
+                <div class="stack">
+                  <div class="stack-top"><div class="row-label"><b>Graphics quality</b></div><span class="value" id="gqOut">7</span></div>
+                  <input class="slider" id="gqSlider" type="range" min="1" max="10" value="7" data-out="#gqOut" aria-label="Graphics quality">
+                </div>
+              </section>
+              <section class="panel span-5 stagger" id="potatoPanel">
+                <div class="panel-head"><div><h3><span class="dot"></span>Potato mode</h3><p>Maximum FPS on weak hardware.</p></div><button class="switch" id="potatoSwitch" role="switch" aria-checked="false" aria-label="Potato mode"></button></div>
+                <ul class="checklist"><li>Shadows and post-processing off</li><li>Lowest texture quality</li><li>Grass and decorations hidden</li><li>Reduced mesh detail at distance</li><li>Graphics quality locked to 1</li></ul>
+                <div class="btn-row"><button class="btn" data-toast="Test run: settings look valid">Test settings</button></div>
+              </section>
+              <section class="panel span-12 stagger">
+                <div class="panel-head"><div><h3><span class="dot"></span>Session</h3><p>What RoseTrap will apply on the next launch.</p></div><span class="chip" id="statusChip">Ready</span></div>
+                <div class="stats"><div class="stat"><span>Active FFlags</span><b id="statFlags">3</b></div><div class="stat"><span>Preset</span><b id="statPreset">Balanced</b></div><div class="stat"><span>FPS cap</span><b id="statFps">144</b></div></div>
+              </section>
+            </div>
+          </div></div>
+
+          <!-- 02 · Global -->
+          <div class="view" data-view="Global"><div class="view-scroll">
+            <header class="view-head stagger"><div><div class="eyebrow">03 · Global</div><h2>Global</h2><p>Rendering options applied to every game.</p></div></header>
+            <div class="grid">
+              <section class="panel span-12 stagger">
+                <div class="panel-head"><div><h3><span class="dot"></span>Renderer</h3><p>Pick the graphics backend and lighting.</p></div></div>
+                <div class="row"><div class="row-label"><b>Rendering API</b><small>Vulkan is usually smoother on newer GPUs.</small></div><div class="seg" data-name="Rendering API"><button aria-pressed="true">Auto</button><button>Direct3D 11</button><button>Vulkan</button><button>OpenGL</button></div></div>
+                <div class="row"><div class="row-label"><b>Lighting</b><small>Future looks best, Voxel is fastest.</small></div><div class="seg" data-name="Lighting"><button>Voxel</button><button aria-pressed="true">ShadowMap</button><button>Future</button></div></div>
+                <div class="row"><div class="row-label"><b>Anti-aliasing (MSAA)</b></div><div class="seg" data-name="MSAA"><button>Off</button><button aria-pressed="true">2×</button><button>4×</button><button>8×</button></div></div>
+              </section>
+              <section class="panel stagger">
+                <div class="panel-head"><div><h3><span class="dot"></span>Detail</h3></div></div>
+                <div class="row"><div class="row-label"><b>Texture quality</b></div><select class="select" aria-label="Texture quality"><option>Automatic</option><option>Low</option><option selected>Medium</option><option>High</option></select></div>
+                <div class="row"><div class="row-label"><b>Mesh detail distance</b><small>Lower is faster.</small></div><select class="select" aria-label="Mesh detail"><option>Short</option><option selected>Default</option><option>Far</option></select></div>
+              </section>
+              <section class="panel stagger">
+                <div class="panel-head"><div><h3><span class="dot"></span>Effects</h3></div></div>
+                <div class="row"><div class="row-label"><b>Shadows</b></div><button class="switch" role="switch" aria-checked="true" aria-label="Shadows"></button></div>
+                <div class="row"><div class="row-label"><b>Post-processing</b><small>Bloom, depth of field, sun rays.</small></div><button class="switch" role="switch" aria-checked="true" aria-label="Post-processing"></button></div>
+                <div class="row"><div class="row-label"><b>Grass</b></div><button class="switch" role="switch" aria-checked="false" aria-label="Grass"></button></div>
+              </section>
+            </div>
+          </div></div>
+
+          <!-- 03 · FFlags -->
+          <div class="view" data-view="FFlags"><div class="view-scroll">
+            <header class="view-head stagger"><div><div class="eyebrow">04 · FFlags</div><h2>Fast flags</h2><p id="flagSummary">—</p></div>
+              <div class="head-actions"><button class="btn" id="flagExport">Export JSON</button><button class="btn btn-danger" id="flagClear">Clear all</button></div></header>
+            <section class="panel span-12 stagger">
+              <div class="flag-tools"><input class="input" id="flagSearch" placeholder="Search flags…" aria-label="Search flags"></div>
+              <div class="flag-list" id="flagList"></div>
+              <form class="flag-add" id="flagAdd" autocomplete="off">
+                <input class="input mono" id="flagName" placeholder="FFlagExampleName" aria-label="Flag name">
+                <input class="input mono" id="flagValue" placeholder="value" aria-label="Flag value">
+                <button class="btn btn-primary" type="submit">Add flag</button>
+              </form>
+            </section>
+          </div></div>
+
+          <!-- 04 · FFlags Settings -->
+          <div class="view" data-view="FFlags Settings"><div class="view-scroll">
+            <header class="view-head stagger"><div><div class="eyebrow">05 · FFlags Settings</div><h2>FFlags settings</h2><p>How flags are written and checked.</p></div></header>
+            <div class="grid">
+              <section class="panel stagger">
+                <div class="panel-head"><div><h3><span class="dot"></span>Behaviour</h3></div></div>
+                <div class="row"><div class="row-label"><b>Apply on launch</b><small>Write flags right before Roblox starts.</small></div><button class="switch" role="switch" aria-checked="true" aria-label="Apply on launch"></button></div>
+                <div class="row"><div class="row-label"><b>Allowlist only</b><small>Skip flags Roblox ignores.</small></div><button class="switch" role="switch" aria-checked="true" aria-label="Allowlist only"></button></div>
+                <div class="row"><div class="row-label"><b>Validate values</b><small>Warn about wrong types.</small></div><button class="switch" role="switch" aria-checked="true" aria-label="Validate values"></button></div>
+              </section>
+              <section class="panel stagger">
+                <div class="panel-head"><div><h3><span class="dot"></span>Backups</h3></div></div>
+                <div class="row"><div class="row-label"><b>Keep backups</b></div><select class="select" aria-label="Backups"><option>Last 3</option><option selected>Last 10</option><option>Forever</option></select></div>
+                <div class="row"><div class="row-label"><b>Restore</b><small>Roll back to the last working set.</small></div><button class="btn" data-toast="Restored backup from today">Restore…</button></div>
+                <div class="row"><div class="row-label"><b>Reset everything</b><small>Removes all custom flags.</small></div><button class="btn btn-danger" data-toast="All flags reset">Reset</button></div>
+              </section>
+            </div>
+          </div></div>
+
+          <!-- 05 · Preset -->
+          <div class="view" data-view="Preset"><div class="view-scroll">
+            <header class="view-head stagger"><div><div class="eyebrow">06 · Preset</div><h2>Presets</h2><p>One click to change the whole setup.</p></div>
+              <div class="head-actions"><button class="btn btn-primary" id="presetApply">Apply preset</button></div></header>
+            <div class="presets" role="radiogroup" aria-label="Presets">
+              <button class="preset stagger" role="radio" aria-checked="false" data-preset="Potato"><span class="check"></span><span class="ico">🥔</span><h4>Potato</h4><p>Everything off. For old laptops.</p><div class="meter">Performance<i style="--v:100%"></i></div><div class="meter">Visuals<i style="--v:12%"></i></div></button>
+              <button class="preset stagger" role="radio" aria-checked="true" data-preset="Balanced"><span class="check"></span><span class="ico">⚖️</span><h4>Balanced</h4><p>Good look, stable frame rate.</p><div class="meter">Performance<i style="--v:68%"></i></div><div class="meter">Visuals<i style="--v:62%"></i></div></button>
+              <button class="preset stagger" role="radio" aria-checked="false" data-preset="Quality"><span class="check"></span><span class="ico">✨</span><h4>Quality</h4><p>Future lighting, max detail.</p><div class="meter">Performance<i style="--v:34%"></i></div><div class="meter">Visuals<i style="--v:96%"></i></div></button>
+              <button class="preset stagger" role="radio" aria-checked="false" data-preset="Custom"><span class="check"></span><span class="ico">🌹</span><h4>Custom</h4><p>Your own flags and settings.</p><div class="meter">Performance<i style="--v:50%"></i></div><div class="meter">Visuals<i style="--v:50%"></i></div></button>
+            </div>
+          </div></div>
+
+          <!-- 06 · Shaders -->
+          <div class="view" data-view="Shaders"><div class="view-scroll">
+            <header class="view-head stagger"><div><div class="eyebrow">07 · Shaders</div><h2>Shaders</h2><p>Colour grading on top of the game image.</p></div>
+              <div class="head-actions"><div class="seg" id="shaderPresets" data-name="Shader preset"><button>Off</button><button aria-pressed="true">Subtle</button><button>Vivid</button><button>Noir</button></div></div></header>
+            <div class="grid">
+              <section class="panel stagger">
+                <div class="panel-head"><div><h3><span class="dot"></span>Adjustments</h3></div></div>
+                <div class="stack"><div class="stack-top"><div class="row-label"><b>Saturation</b></div><span class="value" id="satOut">110%</span></div><input class="slider shader" id="sat" type="range" min="0" max="200" value="110" data-out="#satOut" data-unit="%" aria-label="Saturation"></div>
+                <div class="stack"><div class="stack-top"><div class="row-label"><b>Contrast</b></div><span class="value" id="conOut">105%</span></div><input class="slider shader" id="con" type="range" min="50" max="160" value="105" data-out="#conOut" data-unit="%" aria-label="Contrast"></div>
+                <div class="stack"><div class="stack-top"><div class="row-label"><b>Brightness</b></div><span class="value" id="briOut">100%</span></div><input class="slider shader" id="bri" type="range" min="50" max="150" value="100" data-out="#briOut" data-unit="%" aria-label="Brightness"></div>
+              </section>
+              <section class="panel stagger">
+                <div class="panel-head"><div><h3><span class="dot"></span>Live preview</h3><p>Test the look before launching.</p></div></div>
+                <div class="preview" id="shaderPreview"><span class="preview-label">Preview</span></div>
+                <div class="btn-row"><button class="btn" data-toast="Shader test frame captured">Test in game</button><button class="btn btn-ghost" id="shaderReset">Reset</button></div>
+              </section>
+            </div>
+          </div></div>
+
+          <!-- 07 · Settings -->
+          <div class="view" data-view="Settings"><div class="view-scroll">
+            <header class="view-head stagger"><div><div class="eyebrow">08 · Settings</div><h2>Settings</h2><p>RoseTrap itself.</p></div></header>
+            <div class="grid">
+              <section class="panel stagger">
+                <div class="panel-head"><div><h3><span class="dot"></span>App</h3></div></div>
+                <div class="row"><div class="row-label"><b>Language</b></div><select class="select" aria-label="Language"><option>English</option><option>Русский</option></select></div>
+                <div class="row"><div class="row-label"><b>Start with Windows</b></div><button class="switch" role="switch" aria-checked="false" aria-label="Start with Windows"></button></div>
+                <div class="row"><div class="row-label"><b>Discord Rich Presence</b><small>Show the game you're playing.</small></div><button class="switch" role="switch" aria-checked="true" aria-label="Discord Rich Presence"></button></div>
+                <div class="row"><div class="row-label"><b>Multiple instances</b></div><button class="switch" role="switch" aria-checked="false" aria-label="Multiple instances"></button></div>
+              </section>
+              <section class="panel stagger">
+                <div class="panel-head"><div><h3><span class="dot"></span>About</h3><p>RoseTrap 0.1.0 · personal build</p></div><span class="chip">Up to date</span></div>
+                <div class="row"><div class="row-label"><b>Check for updates</b><small>Automatically on start.</small></div><button class="switch" role="switch" aria-checked="true" aria-label="Check for updates"></button></div>
+                <div class="btn-row"><button class="btn" data-toast="You're on the latest version">Check now</button><button class="btn btn-ghost" data-toast="Opening logs folder">Open logs</button></div>
+              </section>
+            </div>
+          </div></div>
+
+          <!-- 08 · Appearance -->
+          <div class="view" data-view="Appearance"><div class="view-scroll">
+            <header class="view-head stagger"><div><div class="eyebrow">09 · Appearance</div><h2>Appearance</h2><p>Make RoseTrap yours.</p></div></header>
+            <div class="grid">
+              <section class="panel stagger">
+                <div class="panel-head"><div><h3><span class="dot"></span>Accent colour</h3></div></div>
+                <div class="row"><div class="swatches" role="radiogroup" aria-label="Accent colour">
+                  <button class="swatch" role="radio" aria-checked="true" aria-label="Rose" style="--c:#d99aa9" data-a="#d99aa9" data-b="#f3adbd"></button>
+                  <button class="swatch" role="radio" aria-checked="false" aria-label="Crimson" style="--c:#d9727f" data-a="#d9727f" data-b="#f2909b"></button>
+                  <button class="swatch" role="radio" aria-checked="false" aria-label="Lilac" style="--c:#b49ad9" data-a="#b49ad9" data-b="#cdb6f3"></button>
+                  <button class="swatch" role="radio" aria-checked="false" aria-label="Peach" style="--c:#e0a98a" data-a="#e0a98a" data-b="#f5c3a6"></button>
+                  <button class="swatch" role="radio" aria-checked="false" aria-label="Mint" style="--c:#8fc9b0" data-a="#8fc9b0" data-b="#ace4cb"></button>
+                </div></div>
+              </section>
+              <section class="panel stagger">
+                <div class="panel-head"><div><h3><span class="dot"></span>Motion</h3></div></div>
+                <div class="stack"><div class="stack-top"><div class="row-label"><b>Animation speed</b></div><span class="value" id="speedOut">1.0×</span></div><input class="slider" id="speedSlider" type="range" min="5" max="20" value="10" aria-label="Animation speed"></div>
+                <div class="row"><div class="row-label"><b>Compact sidebar</b></div><button class="switch" id="compactSwitch2" role="switch" aria-checked="false" aria-label="Compact sidebar"></button></div>
+              </section>
+            </div>
+          </div></div>
+
+        </div>
+      </section>
+    </div>
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+  </section>
+  <div class="controls"><div class="toggle-wrap"><button class="switch" id="collapseSwitch" role="switch" aria-checked="false" aria-label="Compact sidebar"></button><span>Compact sidebar</span></div><span class="note">Pick a section on the left · ↑ ↓ to move between tabs</span></div>
+</main>
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let speed = 1; // Appearance → Animation speed
+  const dur = ms => ms / speed;
+
+  /* ---------- toasts & ripples ---------- */
+  const toasts = $('#toasts');
+  function toast(text) {
+    const el = document.createElement('div');
+    el.className = 'toast'; el.textContent = text; toasts.append(el);
+    el.animate([{ opacity: 0, transform: 'translateY(10px) scale(.96)' }, { opacity: 1, transform: 'none' }], { duration: dur(320), easing: 'cubic-bezier(.16,1,.3,1)' });
+    setTimeout(() => el.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(6px)' }], { duration: dur(220), fill: 'forwards' }).finished.then(() => el.remove()), 2400);
+  }
+  document.addEventListener('pointerdown', e => {
+    const b = e.target.closest('.btn'); if (!b) return;
+    const r = b.getBoundingClientRect(), d = Math.max(r.width, r.height) * 2.2;
+    const s = document.createElement('span'); s.className = 'ripple';
+    Object.assign(s.style, { width: d + 'px', height: d + 'px', left: e.clientX - r.left - d / 2 + 'px', top: e.clientY - r.top - d / 2 + 'px' });
+    b.append(s);
+    s.animate([{ transform: 'scale(0)', opacity: .28 }, { transform: 'scale(1)', opacity: 0 }], { duration: dur(560), easing: 'ease-out' }).finished.then(() => s.remove());
+  });
+  document.addEventListener('click', e => { const b = e.target.closest('[data-toast]'); if (b) toast(b.dataset.toast); });
+
+  /* ---------- switches ---------- */
+  document.addEventListener('click', e => {
+    const sw = e.target.closest('.switch'); if (!sw) return;
+    const on = sw.getAttribute('aria-checked') !== 'true';
+    sw.setAttribute('aria-checked', String(on));
+    sw.dispatchEvent(new CustomEvent('toggle', { detail: on, bubbles: true }));
+  });
+
+  /* ---------- sliders ---------- */
+  function paint(sl) {
+    const p = (sl.value - sl.min) / (sl.max - sl.min) * 100;
+    sl.style.setProperty('--p', p + '%');
+  }
+  function bump(el) { el.classList.add('bump'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('bump'), 140); }
+  $$('.slider').forEach(sl => {
+    paint(sl);
+    sl.addEventListener('input', () => {
+      paint(sl);
+      if (sl.dataset.out) { const o = $(sl.dataset.out); o.textContent = sl.value + (sl.dataset.unit || ''); bump(o); }
+    });
+  });
+  const FPS = [30, 60, 75, 120, 144, 165, 240, 360, Infinity];
+  const fpsSlider = $('#fpsSlider'), fpsOut = $('#fpsOut');
+  fpsSlider.addEventListener('input', () => {
+    const v = FPS[fpsSlider.value];
+    fpsOut.textContent = v === Infinity ? 'Unlimited' : v + ' FPS';
+    $('#statFps').textContent = v === Infinity ? '∞' : v; bump(fpsOut);
+  });
+
+  /* ---------- segmented controls ---------- */
+  const segs = [];
+  $$('.seg').forEach(seg => {
+    const thumb = document.createElement('span'); thumb.className = 'seg-thumb'; seg.prepend(thumb);
+    const btns = $$('button', seg);
+    let cur = btns.find(b => b.getAttribute('aria-pressed') === 'true') || btns[0];
+    const place = (b, instant) => {
+      if (instant) thumb.style.transition = 'none';
+      thumb.style.width = b.offsetWidth + 'px';
+      thumb.style.transform = `translateX(${b.offsetLeft}px)`;
+      btns.forEach(x => x.setAttribute('aria-pressed', String(x === b)));
+      if (instant) { thumb.offsetWidth; thumb.style.transition = ''; }
+      cur = b;
+    };
+    btns.forEach(b => b.addEventListener('click', () => { place(b); seg.dispatchEvent(new CustomEvent('change', { detail: b.textContent })); }));
+    segs.push(() => place(cur, true));
+  });
+  const relayoutSegs = () => segs.forEach(f => f());
+
+  /* ---------- potato / presets (kept in sync) ---------- */
+  const potatoSwitch = $('#potatoSwitch'), potatoPanel = $('#potatoPanel'), gq = $('#gqSlider');
+  let preset = 'Balanced';
+  function setPreset(name, silent) {
+    preset = name;
+    $$('.preset').forEach(p => p.setAttribute('aria-checked', String(p.dataset.preset === name)));
+    $('#statPreset').textContent = name;
+    const potato = name === 'Potato';
+    potatoSwitch.setAttribute('aria-checked', String(potato));
+    potatoPanel.classList.toggle('potato-on', potato);
+    gq.disabled = potato;
+    if (potato) { gq.value = 1; } else if (gq.value == 1) { gq.value = name === 'Quality' ? 10 : 7; }
+    gq.dispatchEvent(new Event('input'));
+    if (!silent) toast(potato ? 'Potato mode on 🥔' : `Preset: ${name}`);
+  }
+  potatoSwitch.addEventListener('toggle', e => setPreset(e.detail ? 'Potato' : 'Balanced'));
+  $$('.preset').forEach(p => p.addEventListener('click', () => setPreset(p.dataset.preset, true)));
+  $('#presetApply').addEventListener('click', () => toast(`Preset “${preset}” applied`));
+
+  /* ---------- FFlags editor ---------- */
+  const flags = [
+    { name: 'DFIntTaskSchedulerTargetFps', value: '144', on: true },
+    { name: 'FFlagDebugGraphicsPreferVulkan', value: 'True', on: true },
+    { name: 'FIntDebugForceMSAASamples', value: '2', on: true },
+    { name: 'DFIntCSGLevelOfDetailSwitchingDistance', value: '0', on: false },
+  ];
+  const typeOf = n => /^D?FFlag/.test(n) ? 'Bool' : /^D?FInt/.test(n) ? 'Int' : /^D?FString/.test(n) ? 'String' : 'Log';
+  const list = $('#flagList'), search = $('#flagSearch');
+  const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function summary() {
+    const on = flags.filter(f => f.on).length;
+    $('#flagSummary').textContent = `${flags.length} flags · ${on} enabled`;
+    $('#statFlags').textContent = on;
+  }
+  function rowEl(f) {
+    const el = document.createElement('div');
+    el.className = 'flag-row' + (f.on ? '' : ' disabled'); el._flag = f;
+    el.innerHTML = `<button class="switch sm" role="switch" aria-checked="${f.on}" aria-label="Enable ${esc(f.name)}"></button>
+      <code class="flag-name mono" title="${esc(f.name)}">${esc(f.name)}</code>
+      <input class="input mono flag-value" value="${esc(f.value)}" aria-label="Value">
+      <span class="pill ${typeOf(f.name)}">${typeOf(f.name)}</span>
+      <button class="icon-btn" aria-label="Remove ${esc(f.name)}"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>`;
+    $('.switch', el).addEventListener('toggle', e => { f.on = e.detail; el.classList.toggle('disabled', !f.on); summary(); });
+    $('.flag-value', el).addEventListener('input', e => { f.value = e.target.value; });
+    $('.icon-btn', el).addEventListener('click', () => {
+      flags.splice(flags.indexOf(f), 1); summary();
+      el.animate([{ opacity: 1, height: '42px' }, { opacity: 0, height: '0px', marginTop: '-6px', transform: 'translateX(12px)' }], { duration: dur(260), easing: 'cubic-bezier(.4,0,.2,1)', fill: 'forwards' })
+        .finished.then(() => { el.remove(); if (!flags.length) renderFlags(); });
+    });
+    return el;
+  }
+  function renderFlags() {
+    const q = search.value.trim().toLowerCase();
+    const shown = flags.filter(f => f.name.toLowerCase().includes(q));
+    list.replaceChildren(...shown.map(rowEl));
+    if (!shown.length) list.innerHTML = `<div class="empty">${flags.length ? 'No flags match your search.' : 'No flags yet — add one below.'}</div>`;
+    summary();
+  }
+  search.addEventListener('input', renderFlags);
+  $('#flagAdd').addEventListener('submit', e => {
+    e.preventDefault();
+    const nameIn = $('#flagName'), valIn = $('#flagValue');
+    const name = nameIn.value.trim(), value = valIn.value.trim();
+    if (!/^D?F(Flag|Int|String|Log)\w+$/.test(name) || flags.some(f => f.name === name)) {
+      nameIn.classList.add('invalid');
+      nameIn.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(-3px)' }, { transform: 'translateX(0)' }], { duration: 320 });
+      toast(name ? 'Unknown or duplicate flag name' : 'Enter a flag name'); return;
+    }
+    nameIn.classList.remove('invalid');
+    const f = { name, value: value || (typeOf(name) === 'Bool' ? 'True' : '0'), on: true };
+    flags.unshift(f); search.value = ''; renderFlags();
+    const el = list.firstElementChild;
+    el.animate([{ opacity: 0, height: '0px', transform: 'translateY(-8px)' }, { opacity: 1, height: '42px', transform: 'none' }], { duration: dur(360), easing: 'cubic-bezier(.16,1,.3,1)' });
+    nameIn.value = valIn.value = ''; toast(`Added ${name}`);
+  });
+  $('#flagName').addEventListener('input', e => e.target.classList.remove('invalid'));
+  $('#flagExport').addEventListener('click', () => {
+    const json = JSON.stringify(Object.fromEntries(flags.filter(f => f.on).map(f => [f.name, f.value])), null, 2);
+    (navigator.clipboard ? navigator.clipboard.writeText(json) : Promise.reject()).then(() => toast('Copied ClientAppSettings.json'), () => toast('Clipboard unavailable'));
+  });
+  $('#flagClear').addEventListener('click', () => { flags.length = 0; renderFlags(); toast('All flags cleared'); });
+  renderFlags();
+
+  /* ---------- shaders ---------- */
+  const shaderPresets = { Off: [100, 100, 100], Subtle: [110, 105, 100], Vivid: [150, 120, 104], Noir: [0, 135, 95] };
+  const sat = $('#sat'), con = $('#con'), bri = $('#bri'), prev = $('#shaderPreview');
+  const applyShader = () => { prev.style.filter = `saturate(${sat.value}%) contrast(${con.value}%) brightness(${bri.value}%)`; };
+  $$('.slider.shader').forEach(s => s.addEventListener('input', applyShader));
+  function setShader(name) {
+    [sat.value, con.value, bri.value] = shaderPresets[name];
+    [sat, con, bri].forEach(s => s.dispatchEvent(new Event('input')));
+  }
+  $('#shaderPresets').addEventListener('change', e => setShader(e.detail));
+  $('#shaderReset').addEventListener('click', () => $$('#shaderPresets button')[1].click());
+  applyShader();
+
+  /* ---------- appearance ---------- */
+  const hexRgb = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)).join(',');
+  $$('.swatch').forEach(s => s.addEventListener('click', () => {
+    $$('.swatch').forEach(x => x.setAttribute('aria-checked', String(x === s)));
+    const root = document.documentElement.style;
+    root.setProperty('--accent', s.dataset.a); root.setProperty('--accent-bright', s.dataset.b); root.setProperty('--accent-rgb', hexRgb(s.dataset.a));
+  }));
+  const speedSlider = $('#speedSlider');
+  speedSlider.addEventListener('input', () => { speed = speedSlider.value / 10; $('#speedOut').textContent = speed.toFixed(1) + '×'; bump($('#speedOut')); });
+
+  /* ---------- sidebar collapse ---------- */
+  const win = $('#window'), sidebar = $('#sidebar');
+  const collapseSwitches = [$('#collapseSwitch'), $('#compactSwitch2')];
+  collapseSwitches.forEach(sw => sw.addEventListener('toggle', e => {
+    collapseSwitches.forEach(o => o.setAttribute('aria-checked', String(e.detail)));
+    win.classList.toggle('collapsed', e.detail);
+  }));
+
+  /* ---------- tab switching ---------- */
+  const views = $$('.view'), order = views.map(v => v.dataset.view);
+  const byName = Object.fromEntries(views.map(v => [v.dataset.view, v]));
+  const navItems = $$('.nav-item'), indicator = $('#navIndicator'), crumb = $('#crumb');
+  let current = byName.Welcome, token = 0;
+
+  function moveIndicator(instant) {
+    const a = navItems.find(n => n.classList.contains('active'));
+    if (instant) indicator.style.transition = 'none';
+    if (a) {
+      const r = a.getBoundingClientRect(), s = sidebar.getBoundingClientRect();
+      indicator.style.width = r.width + 'px';
+      indicator.style.transform = `translate(${r.left - s.left}px, ${r.top - s.top}px)`;
+      indicator.style.opacity = 1;
+    } else indicator.style.opacity = 0;
+    if (instant) { indicator.offsetWidth; indicator.style.transition = ''; }
+  }
+  new ResizeObserver(() => moveIndicator(true)).observe(sidebar);
+
+  function swapCrumb(name) {
+    crumb.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'translateY(-4px)' }], { duration: dur(110), fill: 'forwards' }).finished.then(() => {
+      crumb.textContent = `RoseTrap / ${name}`;
+      crumb.animate([{ opacity: 0, transform: 'translateY(4px)' }, { opacity: 1, transform: 'none' }], { duration: dur(220), easing: 'ease-out', fill: 'forwards' });
+    });
+  }
+
+  function show(name, instant = false) {
+    const next = byName[name]; if (!next || next === current) return;
+    const prev = current, t = ++token;
+    const dir = order.indexOf(name) >= order.indexOf(prev.dataset.view) ? 1 : -1;
+    current = next;
+    navItems.forEach(n => n.classList.toggle('active', n.dataset.name === name));
+    moveIndicator(instant);
+    if (instant) crumb.textContent = `RoseTrap / ${name}`; else swapCrumb(name);
+    Rose.setActive(name === 'Welcome');
+
+    // Cancel anything still in flight from a previous rapid click.
+    views.forEach(v => {
+      v.getAnimations({ subtree: true }).forEach(a => a.cancel());
+      if (v !== prev && v !== next) v.classList.remove('is-active', 'is-leaving');
+    });
+    next.classList.add('is-active'); next.classList.remove('is-leaving');
+    const scroller = $('.view-scroll', next); if (scroller) scroller.scrollTop = 0;
+    requestAnimationFrame(relayoutSegs);
+
+    if (instant) { prev.classList.remove('is-active', 'is-leaving'); return; }
+    const shift = reduced ? 0 : 14;
+    prev.classList.add('is-leaving');
+    prev.animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: `translateY(${-dir * shift * .6}px) scale(.99)` }],
+      { duration: dur(170), easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' })
+      .finished.then(() => { if (t === token) { prev.classList.remove('is-active', 'is-leaving'); prev.getAnimations().forEach(a => a.cancel()); } }, () => {});
+
+    next.animate([{ opacity: 0 }, { opacity: 1 }], { duration: dur(240), delay: dur(80), easing: 'ease-out', fill: 'backwards' });
+    $$('.stagger', next).forEach((el, i) => el.animate(
+      [{ opacity: 0, transform: `translateY(${dir * shift * 1.3}px)` }, { opacity: 1, transform: 'none' }],
+      { duration: dur(460), delay: dur(90 + i * 45), easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' }));
+    const head = $('.view-head', next);
+    if (head) head.animate([{ transform: 'scaleX(0)' }, { transform: 'scaleX(1)' }], { duration: dur(520), delay: dur(160), easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards', pseudoElement: '::after' });
+    if (name === 'Welcome') next.animate([{ opacity: 0, transform: 'scale(.985)' }, { opacity: 1, transform: 'none' }], { duration: dur(420), delay: dur(60), easing: 'cubic-bezier(.16,1,.3,1)', fill: 'backwards' });
+  }
+
+  navItems.forEach(b => b.addEventListener('click', () => show(b.dataset.name)));
+  $('#brandHome').addEventListener('click', () => show('Welcome'));
+  sidebar.addEventListener('keydown', e => {
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    e.preventDefault();
+    const i = navItems.findIndex(n => n.classList.contains('active'));
+    const j = (i + (e.key === 'ArrowDown' ? 1 : -1) + navItems.length) % navItems.length;
+    navItems[j].focus(); show(navItems[j].dataset.name);
+  });
+
+  /* ---------- realistic vine frame (generated to real pixels, so nothing stretches) ---------- */
+  const vine = $('#vineFrame');
+  function buildVine() {
+    const W = vine.clientWidth, H = vine.clientHeight; if (!W || !H) return;
+    vine.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    let seed = 20231;
+    const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+    const out = { cane: '', thorn: '', petiole: '', leaf: '', vein: '', bud: '', hl: '' };
+    const f = n => n.toFixed(1);
+
+    function catmull(pts) {
+      const P = pts.map(([x, y]) => [x * W, y * H]), res = [];
+      for (let i = 0; i < P.length - 1; i++) {
+        const p0 = P[i - 1] || P[i], p1 = P[i], p2 = P[i + 1], p3 = P[i + 2] || p2;
+        for (let s = 0; s < 24; s++) {
+          const t = s / 24, t2 = t * t, t3 = t2 * t;
+          res.push([0, 1].map(k => .5 * (2 * p1[k] + (-p0[k] + p2[k]) * t + (2 * p0[k] - 5 * p1[k] + 4 * p2[k] - p3[k]) * t2 + (-p0[k] + 3 * p1[k] - 3 * p2[k] + p3[k]) * t3)));
+        }
+      }
+      res.push(P[P.length - 1]);
+      // resample by arc length
+      const pts2 = [res[0]]; let acc = 0;
+      for (let i = 1; i < res.length; i++) {
+        acc += Math.hypot(res[i][0] - res[i - 1][0], res[i][1] - res[i - 1][1]);
+        if (acc >= 3) { pts2.push(res[i]); acc = 0; }
+      }
+      return pts2;
+    }
+
+    function leaflet(x, y, ang, L, Wd) {
+      const c = Math.cos(ang), s = Math.sin(ang), N = 22, left = [], right = [];
+      for (let i = 0; i <= N; i++) {
+        const u = i / N;
+        let hw = Wd * Math.pow(Math.sin(Math.PI * Math.pow(u, .78)), .9);
+        if (u > .12 && u < .94) hw *= 1 + .13 * (1 - 2 * Math.abs((u * 9) % 1 - .5)); // serrated edge
+        const ax = x + c * u * L, ay = y + s * u * L;
+        left.push([ax - s * hw, ay + c * hw]); right.push([ax + s * hw * .92, ay - c * hw * .92]);
+      }
+      const poly = [...left, ...right.reverse()];
+      out.leaf += 'M' + poly.map(p => f(p[0]) + ' ' + f(p[1])).join('L') + 'Z';
+      out.vein += `M${f(x)} ${f(y)}Q${f(x + c * L * .5 + s * 1.2)} ${f(y + s * L * .5 - c * 1.2)} ${f(x + c * L * .92)} ${f(y + s * L * .92)}`;
+      for (let k = 1; k <= 3; k++) {
+        const u = k * .22, bx = x + c * u * L, by = y + s * u * L, sl = Wd * .7;
+        out.vein += `M${f(bx)} ${f(by)}l${f(c * sl * .7 - s * sl)} ${f(s * sl * .7 + c * sl)}M${f(bx)} ${f(by)}l${f(c * sl * .7 + s * sl * .8)} ${f(s * sl * .7 - c * sl * .8)}`;
+      }
+    }
+
+    function leafGroup(p, n, t, side, size) {
+      // Rose leaves are compound: a petiole carrying a terminal leaflet and 1–2 opposite pairs.
+      const base = Math.atan2(t[1], t[0]) + side * (.75 + rnd() * .35);
+      const P = (22 + rnd() * 10) * size, bend = side * .35;
+      const ex = p[0] + Math.cos(base) * P, ey = p[1] + Math.sin(base) * P;
+      const cx = p[0] + Math.cos(base - bend) * P * .55, cy = p[1] + Math.sin(base - bend) * P * .55;
+      out.petiole += `M${f(p[0])} ${f(p[1])}Q${f(cx)} ${f(cy)} ${f(ex)} ${f(ey)}`;
+      const L = (17 + rnd() * 5) * size, Wd = L * .36;
+      leaflet(ex, ey, base + bend * .4, L, Wd);
+      const pairs = size > .9 ? [.48, .8] : [.7];
+      pairs.forEach((q, k) => {
+        const qx = (1 - q) * (1 - q) * p[0] + 2 * (1 - q) * q * cx + q * q * ex, qy = (1 - q) * (1 - q) * p[1] + 2 * (1 - q) * q * cy + q * q * ey;
+        const sc = .72 + .16 * k;
+        leaflet(qx, qy, base + .95, L * sc, Wd * sc);
+        leaflet(qx, qy, base - .95, L * sc, Wd * sc);
+      });
+    }
+
+    function bud(p, t) {
+      const a = Math.atan2(t[1], t[0]), c = Math.cos(a), s = Math.sin(a), Lb = 13;
+      const pt = (u, v) => [p[0] + c * u - s * v, p[1] + s * u + c * v];
+      const q = (...xy) => xy.map(([u, v]) => pt(u, v).map(f).join(' ')).join(' ');
+      out.bud += `M${q([0, 0])}C${q([Lb * .35, -6.5], [Lb * .9, -4.5], [Lb * 1.15, 0])}C${q([Lb * .9, 4.5], [Lb * .35, 6.5], [0, 0])}Z`;
+      out.hl += `M${q([Lb * .2, -2])}Q${q([Lb * .6, -4.2], [Lb * 1.02, -.6])}`;
+      [-1, 1, 0].forEach(k => { out.petiole += `M${q([0, 0])}Q${q([Lb * .45, k * 6.5], [Lb * (k ? .78 : .95), k * 3.2])}`; });
+    }
+
+    function cane(spec) {
+      const pts = catmull(spec.pts), N = pts.length, left = [], right = [], hl = [];
+      const tan = i => { const a = pts[Math.max(0, i - 1)], b = pts[Math.min(N - 1, i + 1)], d = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; return [(b[0] - a[0]) / d, (b[1] - a[1]) / d]; };
+      const width = i => { const u = i / (N - 1); return spec.w1 + (spec.w0 - spec.w1) * Math.pow(1 - u, .85) * (1 + .06 * Math.sin(i * .21)); };
+      for (let i = 0; i < N; i++) {
+        const t = tan(i), n = [-t[1], t[0]], w = width(i) / 2, p = pts[i];
+        left.push([p[0] + n[0] * w, p[1] + n[1] * w]); right.push([p[0] - n[0] * w, p[1] - n[1] * w]);
+        hl.push([p[0] + n[0] * w * .35, p[1] + n[1] * w * .35]);
+      }
+      out.cane += 'M' + [...left, ...right.reverse()].map(p => f(p[0]) + ' ' + f(p[1])).join('L') + 'Z';
+      out.hl += 'M' + hl.map(p => f(p[0]) + ' ' + f(p[1])).join('L');
+
+      // Prickles: broad base, hooked back toward the cane's origin, spaced irregularly.
+      let next = 18 + rnd() * 20;
+      for (let i = 4; i < N - 6; i++) {
+        if (i * 3 < next) continue;
+        next = i * 3 + 34 + rnd() * 46;
+        const t = tan(i), n = [-t[1], t[0]], side = rnd() < .5 ? 1 : -1, hw = width(i) / 2, p = pts[i];
+        const k = Math.max(.55, width(i) / spec.w0), b = (5.5 + rnd() * 2) * k, L = (6 + rnd() * 3) * k;
+        const P = (along, out_) => [p[0] + t[0] * along + n[0] * side * out_, p[1] + t[1] * along + n[1] * side * out_];
+        const A = P(-b * .6, hw * .7), B = P(b * .45, hw * .7), T = P(-L * .55, hw + L);
+        const c1 = P(-b * .55, hw + L * .45), c2 = P(b * .05, hw + L * .3);
+        out.thorn += `M${f(A[0])} ${f(A[1])}Q${f(c1[0])} ${f(c1[1])} ${f(T[0])} ${f(T[1])}Q${f(c2[0])} ${f(c2[1])} ${f(B[0])} ${f(B[1])}Z`;
+      }
+      // Leaves on the inward side.
+      const cxm = W / 2, cym = H / 2;
+      spec.leaves.forEach(([u, size]) => {
+        const i = Math.round(u * (N - 1)), t = tan(i), n = [-t[1], t[0]], p = pts[i];
+        const inward = (cxm - p[0]) * n[0] + (cym - p[1]) * n[1] > 0 ? 1 : -1;
+        const side = rnd() < .8 ? inward : -inward;
+        leafGroup([p[0] + n[0] * side * width(i) * .4, p[1] + n[1] * side * width(i) * .4], n, t, side, size);
+      });
+      if (spec.bud) bud(pts[N - 1], tan(N - 1));
+    }
+
+    cane({ pts: [[-.01, .16], [.07, .07], [.19, .075], [.31, .035], [.45, .058], [.6, .03], [.74, .06], [.87, .04], [.965, .1], [.982, .26], [.962, .44], [.984, .62], [.968, .8], [.93, .945], [.82, .968], [.7, .95], [.6, .975]],
+      w0: 4.2, w1: 1, leaves: [[.12, 1], [.27, .85], [.41, 1], [.56, .9], [.68, .8], [.8, 1], [.92, .75]], bud: true });
+    cane({ pts: [[-.01, .93], [.04, .84], [.065, .72], [.05, .6], [.075, .5]], w0: 3.2, w1: .8, leaves: [[.35, .85], [.7, .7]], bud: true });
+
+    vine.innerHTML = `
+      <defs>
+        <linearGradient id="vg-cane" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${W}" y2="${H}"><stop offset="0" stop-color="#7a3f4f"/><stop offset=".55" stop-color="#5c4a46"/><stop offset="1" stop-color="#4a5a43"/></linearGradient>
+        <linearGradient id="vg-leaf" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="${W}" y2="${H}"><stop offset="0" stop-color="#4f5d45"/><stop offset="1" stop-color="#3f5340"/></linearGradient>
+        <radialGradient id="vg-bud" cx=".35" cy=".35" r=".8"><stop offset="0" stop-color="#d48a9d"/><stop offset="1" stop-color="#7c3449"/></radialGradient>
+      </defs>
+      <path d="${out.petiole}" fill="none" stroke="#5b6a4f" stroke-width="1.1" stroke-linecap="round"/>
+      <path d="${out.leaf}" fill="url(#vg-leaf)" stroke="#6d7d5f" stroke-width=".5" stroke-linejoin="round"/>
+      <path d="${out.vein}" fill="none" stroke="#7f9070" stroke-width=".55" stroke-linecap="round" opacity=".75"/>
+      <path d="${out.cane}" fill="url(#vg-cane)"/>
+      <path d="${out.thorn}" fill="#8a5560" stroke="#a87480" stroke-width=".35" stroke-linejoin="round"/>
+      <path d="${out.bud}" fill="url(#vg-bud)"/>
+      <path d="${out.hl}" fill="none" stroke="#c99aa6" stroke-width=".55" stroke-linecap="round" opacity=".45"/>`;
+  }
+  let vineRaf = 0;
+  new ResizeObserver(() => { cancelAnimationFrame(vineRaf); vineRaf = requestAnimationFrame(buildVine); }).observe(vine);
+  addEventListener('resize', relayoutSegs);
+
+  /* ---------- 3D rose made of characters ---------- */
+  var Rose = (() => {
+    const canvas = $('#roseCanvas'), ctx = canvas.getContext('2d');
+    const COLS = 86, ROWS = 62, CW = 6, CH = 9.2, W = COLS * CW, H = ROWS * CH;
+    const dpr = Math.min(2, devicePixelRatio || 1);
+    canvas.width = W * dpr; canvas.height = H * dpr;
+    ctx.scale(dpr, dpr); ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.font = '9px "Cascadia Mono", Consolas, "Courier New", monospace';
+    const chars = ' .,:;irsXA253hMHGS#9B&@';
+    const S = []; // x y z nx ny nz tone material
+    const E = 1e-3;
+    function surface(fn, NU, NV, tone, mat, u0 = 0) {
+      for (let iu = 0; iu < NU; iu++) {
+        const u = u0 + (1 - u0) * iu / (NU - 1);
+        for (let iv = 0; iv < NV; iv++) {
+          const v = -1 + 2 * iv / (NV - 1);
+          const p = fn(u, v), a0 = fn(Math.max(0, u - E), v), a1 = fn(Math.min(1, u + E), v), b0 = fn(u, Math.max(-1, v - E)), b1 = fn(u, Math.min(1, v + E));
+          const ax = a1[0] - a0[0], ay = a1[1] - a0[1], az = a1[2] - a0[2], bx = b1[0] - b0[0], by = b1[1] - b0[1], bz = b1[2] - b0[2];
+          let nx = ay * bz - az * by, ny = az * bx - ax * bz, nz = ax * by - ay * bx; const n = Math.hypot(nx, ny, nz) || 1;
+          S.push(p[0], p[1], p[2], nx / n, ny / n, nz / n, tone(u, v), mat);
+        }
+      }
+    }
+
+    const RS = .72, RK = .55, RM = 2, SZ = .95, TILT = -.8; // bloom radius scale, cup taper, cup height, centre height, camera tilt
+    // Bloom: four rings of cupped petals (same shape language as the original design).
+    const layers = [
+      { count: 8, base: .17, len: .94, width: .32, z: -.105, belly: .10, edge: .40, tip: .075, twist: .15, tone: -.055, phase: .16, rise: .32 },
+      { count: 7, base: .12, len: .69, width: .30, z: .015, belly: .14, edge: .32, tip: .09, twist: .18, tone: .02, phase: .55, rise: .52 },
+      { count: 6, base: .065, len: .49, width: .235, z: .12, belly: .15, edge: .26, tip: .125, twist: .21, tone: .085, phase: .22, rise: .6 },
+      { count: 5, base: .018, len: .29, width: .18, z: .17, belly: .12, edge: .20, tip: .15, twist: .23, tone: .12, phase: .72, rise: .52 }
+    ];
+    function petalPoint(c, theta, u, v, id) {
+      const s = Math.sin(Math.PI * u);
+      const taper = .22 + .78 * Math.pow(Math.sin(Math.PI * (.045 + .79 * u)), .58);
+      // `rise` cups the petals upward so the bloom reads as a goblet from the side.
+      const r = RS * (1 - RK * c.rise * u) * (c.base + c.len * u) - .045 * c.len * Math.pow(Math.abs(v), 2.6) * u ** 3 + .014 * Math.sin(theta * 3 + u * 5 + id) * s;
+      const a = theta + (c.width / Math.max(r, .12)) * taper * .91 * v + c.twist * v * u + .026 * Math.sin(u * 7 + id) * v;
+      const edgeLift = c.edge * v * v * Math.sin(Math.PI * (.08 + .78 * u));
+      const z = c.z + RM * c.rise * u ** 1.25 + c.belly * Math.sin(Math.PI * (.08 + .8 * u)) + .052 * (1 - v * v) * s + edgeLift + c.tip * u ** 3.5 + .038 * Math.cos(v * Math.PI * 1.4 + u * 4 + id) * s;
+      return [r * Math.cos(a), r * Math.sin(a), z];
+    }
+    let id = 0;
+    layers.forEach((c, li) => {
+      for (let i = 0; i < c.count; i++) {
+        const theta = Math.PI * 2 * i / c.count + c.phase + .045 * Math.sin(i * 13.1 + li * 7.2);
+        const cfg = { ...c, len: c.len * (.92 + .12 * Math.sin(i * 4.7 + li)), width: c.width * (.91 + .15 * Math.cos(i * 3.1)) };
+        const pid = id++;
+        surface((u, v) => petalPoint(cfg, theta, u, v, pid), 47, 29,
+          (u, v) => cfg.tone - .5 * Math.pow(Math.max(0, (Math.abs(v) - .68) / .32), 1.15) + .05 * Math.sin(u * 13 + pid) + .025 * Math.sin(theta * 4 + u * 8), 0, 1 / 46);
+      }
+    });
+    const TS = Math.PI * 4.3;
+    surface((u, v) => { const t = u * TS, r = .018 + .19 * u + v * .045 * (1 - .35 * u), a = t + .15 * Math.sin(t * 1.4); return [RS * r * Math.cos(a), RS * r * Math.sin(a), SZ + .075 * Math.sin(t * .75) + .035 * v]; },
+      270, 13, u => -.015 + .035 * Math.sin(u * TS * 1.7), 0, 2 / 269);
+
+    // Sepals: five slim green points curling down under the bloom.
+    for (let i = 0; i < 5; i++) {
+      const th = i * Math.PI * 2 / 5 + .4;
+      surface((u, v) => {
+        const r = .05 + .46 * u, hw = .075 * Math.pow(Math.sin(Math.PI * Math.min(1, .1 + u)), .6) * (1 - .8 * u) + .004;
+        const a = th + v * hw / r + .12 * u * u;
+        return [r * Math.cos(a), r * Math.sin(a), -.1 + .02 * u - .55 * u * u + .03 * v * v];
+      }, 30, 9, (u, v) => -.02 + .08 * Math.exp(-v * v * 30), 1);
+    }
+
+    // Stem with a slight S-curve, a hip where it meets the bloom, prickles and two compound leaves.
+    const stemC = s => [.07 * Math.sin(s * 2.4), .045 * Math.sin(s * 3.3 + .5), -.1 - 1.32 * s];
+    const stemR = s => .04 + .05 * Math.exp(-s * 16);
+    surface((u, v) => { const c = stemC(u), r = stemR(u), ph = v * Math.PI; return [c[0] + r * Math.cos(ph), c[1] + r * Math.sin(ph), c[2]]; },
+      160, 16, (u, v) => -.05 + .04 * Math.sin(v * Math.PI * 4 + u * 11), 1);
+    [[.22, .6], [.34, 2.9], [.5, 4.6], [.63, 1.5], [.8, 3.6], [.9, 5.6]].forEach(([s, ph]) => {
+      const c = stemC(s), o = [Math.cos(ph), Math.sin(ph), 0], e2 = [Math.sin(ph), -Math.cos(ph), 0], r0 = stemR(s);
+      surface((u, v) => {
+        const ax = [c[0] + o[0] * (r0 * .8 + .1 * u), c[1] + o[1] * (r0 * .8 + .1 * u), c[2] - .015 - .06 * u * u];
+        const rr = .03 * Math.pow(1 - u, 1.25), a = v * Math.PI;
+        return [ax[0] + rr * Math.sin(a) * e2[0], ax[1] + rr * Math.sin(a) * e2[1], ax[2] + rr * Math.cos(a)];
+      }, 14, 12, () => .02, 2);
+    });
+    function leaf(s, ph, scale) {
+      const c = stemC(s), o = [Math.cos(ph), Math.sin(ph)], side = [-o[1], o[0]];
+      const pet = t => [c[0] + o[0] * .3 * t * scale, c[1] + o[1] * .3 * t * scale, c[2] + (.13 * t - .05 * t * t) * scale];
+      surface((u, v) => { const p = pet(u), a = v * Math.PI, r = .011; return [p[0] + side[0] * r * Math.cos(a), p[1] + side[1] * r * Math.cos(a), p[2] + r * Math.sin(a)]; }, 34, 6, () => -.02, 1);
+      const leaflet = (org, dir, L, Wd) => {
+        const dl = Math.hypot(...dir), d = dir.map(x => x / dl);
+        let sd = [d[1], -d[0], 0]; const sl = Math.hypot(...sd) || 1; sd = sd.map(x => x / sl);
+        const nr = [sd[1] * d[2] - sd[2] * d[1], sd[2] * d[0] - sd[0] * d[2], sd[0] * d[1] - sd[1] * d[0]];
+        surface((u, v) => {
+          let hw = Wd * Math.pow(Math.sin(Math.PI * Math.pow(u, .8)), .9);
+          if (u > .12 && u < .94) hw *= 1 + .1 * (1 - 2 * Math.abs((u * 8) % 1 - .5));
+          const lift = .32 * Wd * v * v * Math.sin(Math.PI * u) - .3 * L * u * u;
+          return [0, 1, 2].map(k => org[k] + d[k] * u * L + sd[k] * v * hw + nr[k] * lift);
+        }, 34, 15, (u, v) => .02 + .12 * Math.exp(-v * v * 90) - .06 * (Math.sin((u * 12 - Math.abs(v) * 2.5) * Math.PI) > .8 ? 1 : 0), 1);
+      };
+      const end = pet(1), mid = pet(.6);
+      leaflet(end, [o[0], o[1], .28], .3 * scale, .12 * scale);
+      [1, -1].forEach(k => leaflet(mid, [o[0] * .55 + side[0] * k * .8, o[1] * .55 + side[1] * k * .8, .22], .23 * scale, .095 * scale));
+    }
+    leaf(.5, 2.2, 1);
+    leaf(.74, -.75, .85);
+
+    const P = new Float32Array(S), count = S.length / 8;
+    const L = [-.42, .6, .68], ll = Math.hypot(...L); L[0] /= ll; L[1] /= ll; L[2] /= ll;
+    const palettes = [
+      [[77, 22, 39], [176, 65, 96], [255, 215, 226]],   // petals
+      [[18, 36, 24], [60, 106, 66], [182, 220, 160]],   // stem, sepals, leaves
+      [[48, 22, 24], [128, 66, 60], [232, 178, 160]]    // prickles
+    ];
+    const LEVELS = 48, clamp = v => Math.max(0, Math.min(1, v));
+    const styles = palettes.map(([lo, mi, hi]) => Array.from({ length: LEVELS }, (_, i) => {
+      const s = i / (LEVELS - 1), a = s < .52 ? lo : mi, b = s < .52 ? mi : hi, t = s < .52 ? s / .52 : (s - .52) / .48;
+      return `rgb(${a.map((x, k) => Math.round(x + (b[k] - x) * t)).join(',')})`;
+    }));
+    const zbuf = new Float32Array(COLS * ROWS), lbuf = new Float32Array(COLS * ROWS), mbuf = new Uint8Array(COLS * ROWS);
+    // Fit the model to the canvas by projecting it at several spin angles.
+    let SCALE, CX, CY;
+    {
+      const ct = Math.cos(TILT), st = Math.sin(TILT);
+      let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+      for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) {
+        const ca = Math.cos(a), sa = Math.sin(a);
+        for (let k = 0; k < count; k += 5) {
+          const b = k * 8, rx = P[b] * ca - P[b + 1] * sa, ry = (P[b] * sa + P[b + 1] * ca) * ct - P[b + 2] * st;
+          x0 = Math.min(x0, rx); x1 = Math.max(x1, rx); y0 = Math.min(y0, ry); y1 = Math.max(y1, ry);
+        }
+      }
+      const m = 10;
+      SCALE = Math.min((W - 2 * m) / (x1 - x0), (H - 2 * m) / (y1 - y0 + .08));
+      CX = W / 2 - (x0 + x1) / 2 * SCALE;
+      CY = H / 2 + (y0 + y1) / 2 * SCALE;
+    }
+
+    let spin = 0.6, extra = 0, last = 0, lastDraw = 0, raf = 0, active = true, dragging = false, lastX = 0, lastT = 0;
+    function draw(now) {
+      raf = requestAnimationFrame(draw);
+      if (now - lastDraw < 30) return; // ~33 fps is plenty for text art
+      const dt = Math.min(64, now - (last || now)); last = now; lastDraw = now;
+      if (!dragging) { spin += dt * (.00055 * speed + extra); extra *= Math.exp(-dt / 700); }
+      const tilt = TILT + .035 * Math.sin(now * .0007);
+      const ca = Math.cos(spin), sa = Math.sin(spin), ct = Math.cos(tilt), st = Math.sin(tilt);
+      zbuf.fill(-1e9);
+      for (let k = 0; k < count; k++) {
+        const b = k * 8, x = P[b], y = P[b + 1], z = P[b + 2];
+        const rx = x * ca - y * sa, ry0 = x * sa + y * ca;
+        const ry = ry0 * ct - z * st, depth = ry0 * st + z * ct;
+        const col = ((CX + rx * SCALE) / CW) | 0, row = ((CY - ry * SCALE) / CH) | 0;
+        if (col < 0 || col >= COLS || row < 0 || row >= ROWS) continue;
+        const idx = row * COLS + col;
+        if (depth < zbuf[idx]) continue;
+        const nx = P[b + 3], ny = P[b + 4], nz = P[b + 5];
+        let rnx = nx * ca - ny * sa; const rny0 = nx * sa + ny * ca;
+        let rny = rny0 * ct - nz * st, rnz = rny0 * st + nz * ct;
+        if (rnz < 0) { rnx = -rnx; rny = -rny; rnz = -rnz; } // two-sided surfaces
+        // Half-Lambert keeps petals seen at grazing angles readable instead of collapsing to dots.
+        const diffuse = Math.pow((rnx * L[0] + rny * L[1] + rnz * L[2]) * .5 + .5, 1.7);
+        const spec = Math.pow(Math.max(0, rnz * .85 + rny * .22), 20) * .35;
+        const rim = (1 - rnz) * (1 - rnz) * .11;
+        zbuf[idx] = depth; mbuf[idx] = P[b + 7];
+        lbuf[idx] = clamp(.16 + diffuse * .9 + spec * .6 + rim + P[b + 6]);
+      }
+      ctx.clearRect(0, 0, W, H);
+      let prevStyle = '';
+      for (let i = 0; i < zbuf.length; i++) {
+        if (zbuf[i] < -1e8) continue;
+        const s = lbuf[i], st2 = styles[mbuf[i]][(s * (LEVELS - 1)) | 0];
+        if (st2 !== prevStyle) { ctx.fillStyle = st2; prevStyle = st2; }
+        const ci = Math.max(1, Math.min(chars.length - 1, (clamp((s - .03) / .96) * (chars.length - 1)) | 0));
+        ctx.fillText(chars[ci], (i % COLS) * CW + CW / 2, ((i / COLS) | 0) * CH + CH / 2);
+      }
+    }
+    canvas.addEventListener('pointerdown', e => { dragging = true; lastX = e.clientX; lastT = performance.now(); extra = 0; canvas.setPointerCapture(e.pointerId); canvas.classList.add('dragging'); });
+    canvas.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      const now = performance.now(), dx = e.clientX - lastX;
+      spin += dx * .011; extra = dx * .011 / Math.max(8, now - lastT) * .9; lastX = e.clientX; lastT = now;
+    });
+    const end = () => { dragging = false; canvas.classList.remove('dragging'); };
+    canvas.addEventListener('pointerup', end); canvas.addEventListener('pointercancel', end);
+    raf = requestAnimationFrame(draw);
+    return {
+      setActive(on) {
+        if (on === active) return; active = on;
+        if (on) { last = 0; raf = requestAnimationFrame(draw); } else cancelAnimationFrame(raf);
+      }
+    };
+  })();
+
+  // Deep link, e.g. rosetrap.html#FFlags
+  const initial = decodeURIComponent(location.hash.slice(1));
+  if (byName[initial]) show(initial, true);
+  requestAnimationFrame(() => { relayoutSegs(); moveIndicator(true); });
+})();
+</script>
+</body>
+</html>
