@@ -1,0 +1,53 @@
+name: Screenshots
+
+# Real Windows screenshots of every page, uploaded as an artifact (for layout review).
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**"]
+    paths: ["src/RoseTrap/**", ".github/workflows/screenshots.yml"]
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    env:
+      DOTNET_NOLOGO: 1
+      DOTNET_CLI_TELEMETRY_OPTOUT: 1
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.x
+      - name: Publish
+        run: dotnet publish src/RoseTrap -c Release -r win-x64 -o publish
+      - name: Capture
+        shell: pwsh
+        run: |
+          try { Set-DisplayResolution -Width 1920 -Height 1080 -Force -ErrorAction Stop } catch { Write-Host "resolution unchanged: $_" }
+          Add-Type -AssemblyName System.Windows.Forms, System.Drawing
+          $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
+          Write-Host "screen $($b.Width)x$($b.Height)"
+          New-Item -ItemType Directory shots | Out-Null
+          $pages = @("Welcome","General","Global","FFlags","FFlags Settings","Preset","Shaders","Settings","Appearance")
+          foreach ($p in $pages) {
+            foreach ($mode in @("", "--expanded")) {
+              if ($mode -and $p -ne "Global") { continue }
+              $args = @("--page", "`"$p`"")
+              if ($mode) { $args += $mode }
+              $proc = Start-Process publish\RoseTrap.exe -ArgumentList $args -PassThru
+              Start-Sleep -Seconds 6
+              $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+              $g = [System.Drawing.Graphics]::FromImage($bmp)
+              $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+              $name = ($p -replace ' ', '') + ($(if ($mode) { "-expanded" } else { "" }))
+              $bmp.Save("shots\$name.png", [System.Drawing.Imaging.ImageFormat]::Png)
+              $g.Dispose(); $bmp.Dispose()
+              Stop-Process -Id $proc.Id -Force
+              Start-Sleep -Milliseconds 500
+            }
+          }
+          Get-ChildItem shots
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: shots

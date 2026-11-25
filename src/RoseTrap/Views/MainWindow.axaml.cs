@@ -121,6 +121,9 @@ public partial class MainWindow : Window
         }, DispatcherPriority.Loaded);
     }
 
+    /// <summary>Opens the rail as if hovered (screenshots).</summary>
+    public void ShowSidebarExpanded() => SetSidebar(true);
+
     void SetSidebar(bool expanded)
     {
         Sidebar.Width = expanded ? Expanded : Collapsed;

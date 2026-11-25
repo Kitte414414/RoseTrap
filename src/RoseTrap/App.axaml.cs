@@ -26,8 +26,18 @@ public partial class App : Application
             vm.RegisterLinks();
 
             // Opened from a "Play" button on the website: go straight to launching.
-            var link = LaunchUri.FindInArgs(desktop.Args ?? []);
+            var args = desktop.Args ?? [];
+            var link = LaunchUri.FindInArgs(args);
             if (link != null) window.Opened += async (_, _) => await vm.LaunchAsync(link);
+
+            // "--page Global [--hover]" opens a page directly (used by the screenshot CI job).
+            int pi = Array.IndexOf(args, "--page");
+            if (pi >= 0 && pi + 1 < args.Length)
+            {
+                var page = args[pi + 1];
+                bool hover = args.Contains("--expanded");
+                window.Opened += (_, _) => { window.Navigate(page, instant: true); if (hover) window.ShowSidebarExpanded(); };
+            }
         }
         base.OnFrameworkInitializationCompleted();
     }
