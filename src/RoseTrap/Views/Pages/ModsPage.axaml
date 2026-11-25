@@ -1,0 +1,228 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:RoseTrap.ViewModels"
+             xmlns:c="using:RoseTrap.Controls"
+             x:Class="RoseTrap.Views.Pages.ModsPage"
+             x:DataType="vm:MainViewModel">
+  <UserControl.Styles>
+    <Style Selector="RadioButton.preset TextBlock.title">
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#f0e7ea" />
+      <Setter Property="Margin" Value="0,8,0,0" />
+    </Style>
+    <Style Selector="Border.tile">
+      <Setter Property="CornerRadius" Value="7" />
+      <Setter Property="ClipToBounds" Value="True" />
+      <Setter Property="Background" Value="#4d7a43" />
+    </Style>
+    <Style Selector="Button.swatch-btn">
+      <Setter Property="Width" Value="22" />
+      <Setter Property="Height" Value="22" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="CornerRadius" Value="11" />
+      <Setter Property="BorderThickness" Value="2" />
+      <Setter Property="BorderBrush" Value="#3a363a" />
+      <Setter Property="Margin" Value="0,0,8,0" />
+    </Style>
+  </UserControl.Styles>
+  <ScrollViewer>
+    <StackPanel Classes="page">
+      <Grid Classes="page-head" ColumnDefinitions="*,Auto">
+        <StackPanel>
+          <TextBlock Classes="h2" Text="Mods" />
+          <TextBlock Classes="sub" Text="{Binding ModsStatus}" />
+        </StackPanel>
+        <Button Grid.Column="1" Classes="primary" VerticalAlignment="Center" Content="Apply now" Command="{Binding ApplyModsNowCommand}" />
+      </Grid>
+
+      <!-- Crosshair overlay -->
+      <Border Classes="panel">
+        <StackPanel>
+          <Grid Classes="row" ColumnDefinitions="*,Auto" MinHeight="0">
+            <StackPanel Margin="0,0,16,12">
+              <TextBlock Classes="h3" Text="Crosshair overlay" />
+              <TextBlock Classes="sub" Text="Drawn on top of the game in the middle of the Roblox window. Click-through, never touches Roblox itself." />
+            </StackPanel>
+            <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding CrosshairEnabled}" VerticalAlignment="Top" Margin="0,2,0,0" />
+          </Grid>
+          <Border Classes="divider" Margin="0,0,0,14" />
+          <Grid ColumnDefinitions="*,16,300">
+            <StackPanel>
+              <Grid Classes="slider-row" ColumnDefinitions="84,*,60">
+                <TextBlock Text="Style" />
+                <ComboBox Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Stretch" Margin="8,0,0,0"
+                          ItemsSource="{x:Static vm:MainViewModel.CrosshairStyles}" SelectedIndex="{Binding CrosshairStyleIndex}" />
+              </Grid>
+              <Grid Classes="slider-row" ColumnDefinitions="84,*,60">
+                <TextBlock Text="Length" />
+                <Slider Grid.Column="1" Minimum="1" Maximum="30" Value="{Binding CrosshairSize}" />
+                <TextBlock Grid.Column="2" Classes="val" Text="{Binding CrosshairSizeLabel}" />
+              </Grid>
+              <Grid Classes="slider-row" ColumnDefinitions="84,*,60">
+                <TextBlock Text="Thickness" />
+                <Slider Grid.Column="1" Minimum="1" Maximum="8" Value="{Binding CrosshairThickness}" />
+                <TextBlock Grid.Column="2" Classes="val" Text="{Binding CrosshairThicknessLabel}" />
+              </Grid>
+              <Grid Classes="slider-row" ColumnDefinitions="84,*,60">
+                <TextBlock Text="Gap" />
+                <Slider Grid.Column="1" Minimum="0" Maximum="20" Value="{Binding CrosshairGap}" />
+                <TextBlock Grid.Column="2" Classes="val" Text="{Binding CrosshairGapLabel}" />
+              </Grid>
+              <Grid Classes="slider-row" ColumnDefinitions="84,*,60">
+                <TextBlock Text="Opacity" />
+                <Slider Grid.Column="1" Minimum="0.2" Maximum="1" Value="{Binding CrosshairOpacity}" />
+                <TextBlock Grid.Column="2" Classes="val" Text="{Binding CrosshairOpacityLabel}" />
+              </Grid>
+              <Grid Classes="slider-row" ColumnDefinitions="84,*,Auto">
+                <TextBlock Text="Colour" />
+                <ItemsControl Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="Center" ItemsSource="{x:Static vm:MainViewModel.CrosshairColors}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <Button Classes="swatch-btn" Background="{Binding}" ToolTip.Tip="{Binding}"
+                              Command="{Binding $parent[UserControl].((vm:MainViewModel)DataContext).SetCrosshairColorCommand}" CommandParameter="{Binding}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <TextBox Grid.Column="2" Classes="mono" Width="90" MinHeight="28" Height="28" Padding="8,3" Text="{Binding CrosshairColor}" />
+              </Grid>
+              <Grid Classes="row" ColumnDefinitions="*,Auto" MinHeight="44">
+                <StackPanel Margin="0,4,16,4"><TextBlock Classes="label" Text="Black outline" /></StackPanel>
+                <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding CrosshairOutline}" />
+              </Grid>
+              <Grid Classes="row" ColumnDefinitions="*,Auto" MinHeight="44">
+                <StackPanel Margin="0,4,16,4"><TextBlock Classes="label" Text="Only while Roblox is in front" /></StackPanel>
+                <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding CrosshairOnlyFocused}" />
+              </Grid>
+            </StackPanel>
+            <StackPanel Grid.Column="2" Spacing="10">
+              <Border CornerRadius="8" ClipToBounds="True" BorderBrush="#2b2a2d" BorderThickness="1" Height="210">
+                <Panel>
+                  <Image Source="{Binding ModScene}" Stretch="UniformToFill" />
+                  <c:CrosshairView Settings="{Binding CrosshairPreview}" />
+                  <TextBlock Text="Actual size" FontSize="10" Foreground="#ffffff" Opacity=".8" Margin="8,6" HorizontalAlignment="Left" VerticalAlignment="Top" />
+                </Panel>
+              </Border>
+              <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Content="Show on screen for 5 s" Command="{Binding TestCrosshairCommand}" />
+            </StackPanel>
+          </Grid>
+          <Border Height="8" />
+        </StackPanel>
+      </Border>
+
+      <!-- Cursor -->
+      <Border Classes="panel">
+        <StackPanel>
+          <StackPanel Classes="head">
+            <TextBlock Classes="h3" Text="Mouse cursor" />
+            <TextBlock Classes="sub" Text="Replaces Roblox's pointer and the hand shown over buttons (left: normal, right: over a button)." />
+          </StackPanel>
+          <ItemsControl ItemsSource="{Binding CursorChoices}" Margin="-5,0,-5,12">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><UniformGrid Columns="6" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:StyleChoice">
+                <RadioButton Classes="preset" Margin="5" GroupName="cursor" IsChecked="{Binding IsSelected}" ToolTip.Tip="{Binding Description}">
+                  <StackPanel>
+                    <Border Classes="tile" Height="58">
+                      <Panel>
+                        <Grid ColumnDefinitions="*,*" IsVisible="{Binding HasPreview}">
+                          <Image Source="{Binding Normal}" Width="48" Height="48" />
+                          <Image Grid.Column="1" Source="{Binding Hover}" Width="48" Height="48" />
+                        </Grid>
+                        <TextBlock IsVisible="{Binding NoPreview}" Text="Roblox" FontSize="11" Foreground="#d9eed3"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                      </Panel>
+                    </Border>
+                    <TextBlock Classes="title" Text="{Binding Name}" />
+                  </StackPanel>
+                </RadioButton>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+      </Border>
+
+      <Grid ColumnDefinitions="*,14,*">
+        <!-- Shift lock -->
+        <Border Classes="panel">
+          <StackPanel>
+            <StackPanel Classes="head">
+              <TextBlock Classes="h3" Text="Shift-lock icon" />
+              <TextBlock Classes="sub" Text="The mark in the middle of the screen while shift lock is on." />
+            </StackPanel>
+            <ItemsControl ItemsSource="{Binding ShiftLockChoices}" Margin="-5,0,-5,12">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate><UniformGrid Columns="4" /></ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:StyleChoice">
+                  <RadioButton Classes="preset" Margin="5" GroupName="shiftlock" IsChecked="{Binding IsSelected}" ToolTip.Tip="{Binding Description}">
+                    <StackPanel>
+                      <Border Classes="tile" Height="48">
+                        <Panel>
+                          <Image Source="{Binding Normal}" Width="32" Height="32" IsVisible="{Binding HasPreview}" />
+                          <TextBlock IsVisible="{Binding NoPreview}" Text="Roblox" FontSize="11" Foreground="#d9eed3"
+                                     HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Panel>
+                      </Border>
+                      <TextBlock Classes="title" Text="{Binding Name}" />
+                    </StackPanel>
+                  </RadioButton>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </Border>
+
+        <!-- Sound & font -->
+        <Border Grid.Column="2" Classes="panel">
+          <StackPanel>
+            <StackPanel Classes="head">
+              <TextBlock Classes="h3" Text="Sound &amp; text" />
+              <TextBlock Classes="sub" Text="Swap the death sound and the font used across Roblox." />
+            </StackPanel>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel><TextBlock Classes="label" Text="Death sound" /><TextBlock Classes="hint" Text="“Classic oof” uses the sound Roblox still ships." /></StackPanel>
+              <ComboBox Grid.Column="1" MinWidth="150" ItemsSource="{x:Static vm:MainViewModel.DeathSounds}" SelectedIndex="{Binding DeathSoundIndex}" />
+            </Grid>
+            <Grid Classes="row" ColumnDefinitions="*,Auto" IsVisible="{Binding IsCustomDeathSound}" MinHeight="40">
+              <StackPanel Margin="0,0,16,8"><TextBlock Classes="hint" Margin="0" Text="{Binding DeathSoundFileName}" TextTrimming="CharacterEllipsis" /></StackPanel>
+              <Button Grid.Column="1" Name="ChooseSoundButton" Content="Choose .ogg / .mp3…" Margin="0,0,0,8" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel><TextBlock Classes="label" Text="Font" /><TextBlock Classes="hint" Text="{Binding FontFileName}" TextTrimming="CharacterEllipsis" /></StackPanel>
+              <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="0">
+                <Button Classes="ghost" Content="Reset" Command="{Binding ClearFontCommand}" IsVisible="{Binding HasFont}" />
+                <Button Name="ChooseFontButton" Content="Choose .ttf / .otf…" />
+              </StackPanel>
+            </Grid>
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <!-- Mod folder -->
+      <Border Classes="panel">
+        <StackPanel>
+          <Grid Classes="row" ColumnDefinitions="*,Auto,Auto">
+            <StackPanel>
+              <TextBlock Classes="h3" Text="Mod folder" />
+              <TextBlock Classes="sub" Text="{Binding ModFolderSummary}" />
+            </StackPanel>
+            <Button Grid.Column="1" Name="OpenModFolderButton" Content="Open folder" Margin="0,0,12,0" />
+            <ToggleButton Grid.Column="2" Classes="switch" IsChecked="{Binding UseModFolder}" />
+          </Grid>
+          <Border Classes="divider" />
+          <TextBlock Classes="note" Margin="0,12,0,12"
+                     Text="Works like Bloxstrap's Modifications folder: anything here replaces the file at the same path in Roblox, and Roblox's original comes back when you remove it. Everything on this page goes into RoseTrap's own copy of Roblox only." />
+        </StackPanel>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

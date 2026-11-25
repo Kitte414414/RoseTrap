@@ -11,6 +11,7 @@ public sealed class AppPaths
         Downloads = Path.Combine(Root, "Downloads");
         SettingsFile = Path.Combine(Root, "settings.json");
         SkyboxCache = Path.Combine(Root, "Skyboxes");
+        Modifications = Path.Combine(Root, "Modifications");
         RobloxRoot = Path.Combine(localAppData, "Roblox");
         GlobalClientSettings = Path.Combine(RobloxRoot, "ClientSettings", Flags.ClientSettingsFile.FileName);
         GlobalBasicSettings = Path.Combine(RobloxRoot, "GlobalBasicSettings_13.xml");
@@ -26,6 +27,8 @@ public sealed class AppPaths
     public string Downloads { get; }
     public string SettingsFile { get; }
     public string SkyboxCache { get; }
+    /// <summary>Bloxstrap-style mod folder: files here are mirrored into the Roblox install.</summary>
+    public string Modifications { get; }
     public string RobloxRoot { get; }
     public string GlobalClientSettings { get; }
     public string GlobalBasicSettings { get; }

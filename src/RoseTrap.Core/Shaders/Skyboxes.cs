@@ -1,4 +1,4 @@
-using System.IO.Compression;
+using RoseTrap.Core.Imaging;
 
 namespace RoseTrap.Core.Shaders;
 
@@ -12,7 +12,7 @@ public sealed record SkyboxPreset(string Name, string Description, uint Zenith, 
 public static class Skyboxes
 {
     public const string Default = "Default";
-    public const string BackupSuffix = ".rosetrap-original";
+    const string LegacyBackupSuffix = ".rosetrap-original";
     internal static readonly string[] Faces = ["bk", "dn", "ft", "lf", "rt", "up"];
 
     public static readonly IReadOnlyList<SkyboxPreset> All =
@@ -36,37 +36,16 @@ public static class Skyboxes
 
     public static SkyboxPreset? Find(string name) => All.FirstOrDefault(p => p.Name == name);
 
-    public static string SkyFolder(string installDir) => Path.Combine(installDir, "PlatformContent", "pc", "textures", "sky");
+    /// <summary>Relative path of a sky face inside a Roblox install.</summary>
+    public static string FacePath(string face) => $"PlatformContent/pc/textures/sky/sky512_{face}.tex";
 
-    /// <summary>Writes the skybox into an install (or restores Roblox's sky for <see cref="Default"/>).</summary>
-    /// <param name="cacheDir">Where generated faces are kept so they're drawn once per preset.</param>
-    public static void Apply(string installDir, string preset, string cacheDir)
+    /// <summary>
+    /// The six face files for a preset (nothing for <see cref="Default"/>), as install-relative mod files.
+    /// Faces are drawn once and cached in <paramref name="cacheDir"/>.
+    /// </summary>
+    public static IEnumerable<(string Path, string Source)> Files(string preset, string cacheDir)
     {
-        var sky = SkyFolder(installDir);
-        if (!Directory.Exists(sky)) throw new DirectoryNotFoundException("This Roblox version has no sky textures folder.");
-        var backup = sky + BackupSuffix;
-
-        if (preset == Default || Find(preset) is not { } p)
-        {
-            if (!Directory.Exists(backup)) return;
-            foreach (var f in Directory.GetFiles(backup))
-                FileUtil.CopyOver(f, Path.Combine(sky, Path.GetFileName(f)));
-            return;
-        }
-
-        if (!Directory.Exists(backup))
-        {
-            Directory.CreateDirectory(backup);
-            foreach (var face in Faces)
-            {
-                var src = Path.Combine(sky, $"sky512_{face}.tex");
-                if (!File.Exists(src)) continue;
-                var dst = Path.Combine(backup, Path.GetFileName(src));
-                File.Copy(src, dst);
-                File.SetAttributes(dst, FileAttributes.Normal); // a read-only copy would block later clean-up
-            }
-        }
-
+        if (preset == Default || Find(preset) is not { } p) yield break;
         var cache = Path.Combine(cacheDir, p.Name);
         foreach (var face in Faces)
         {
@@ -76,22 +55,23 @@ public static class Skyboxes
                 Directory.CreateDirectory(cache);
                 File.WriteAllBytes(file, RenderFace(p, face, 512));
             }
-            FileUtil.CopyOver(file, Path.Combine(sky, $"sky512_{face}.tex"));
+            yield return (FacePath(face), file);
         }
     }
 
-    public static string? Current(string installDir, string cacheDir)
+    /// <summary>
+    /// v0.2.0 kept its own sky backup in "sky.rosetrap-original". Put those originals back so the
+    /// mod system sees Roblox's real files, then drop the old folder.
+    /// </summary>
+    public static void MigrateLegacyBackup(string installDir)
     {
-        var sky = SkyFolder(installDir);
-        var up = Path.Combine(sky, "sky512_up.tex");
-        if (!File.Exists(up)) return null;
-        var bytes = File.ReadAllBytes(up);
-        foreach (var p in All.Skip(1))
-        {
-            var c = Path.Combine(cacheDir, p.Name, "sky512_up.tex");
-            if (File.Exists(c) && File.ReadAllBytes(c).AsSpan().SequenceEqual(bytes)) return p.Name;
-        }
-        return Default;
+        var sky = Path.Combine(installDir, "PlatformContent", "pc", "textures", "sky");
+        var backup = sky + LegacyBackupSuffix;
+        if (!Directory.Exists(backup)) return;
+        foreach (var f in Directory.GetFiles(backup))
+            FileUtil.CopyOver(f, Path.Combine(sky, Path.GetFileName(f)));
+        foreach (var f in Directory.GetFiles(backup)) File.SetAttributes(f, FileAttributes.Normal);
+        Directory.Delete(backup, recursive: true);
     }
 
     /// <summary>Renders one cube face as a PNG.</summary>
@@ -195,58 +175,5 @@ public static class Skyboxes
             h = (h ^ (h >> 13)) * 1274126177u;
             return ((h ^ (h >> 16)) & 0xffffff) / (double)0x1000000;
         }
-    }
-}
-
-/// <summary>Minimal RGB8 PNG encoder (no dependencies).</summary>
-internal static class Png
-{
-    static readonly uint[] Crc = BuildCrc();
-
-    public static byte[] Encode(byte[] rgb, int w, int h)
-    {
-        using var raw = new MemoryStream();
-        using (var z = new ZLibStream(raw, CompressionLevel.Optimal, leaveOpen: true))
-        {
-            for (int y = 0; y < h; y++)
-            {
-                z.WriteByte(0); // filter: none
-                z.Write(rgb, y * w * 3, w * 3);
-            }
-        }
-
-        using var png = new MemoryStream();
-        png.Write([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
-        var ihdr = new byte[13];
-        WriteBe(ihdr, 0, (uint)w); WriteBe(ihdr, 4, (uint)h);
-        ihdr[8] = 8; ihdr[9] = 2; // 8-bit truecolour
-        Chunk(png, "IHDR", ihdr);
-        Chunk(png, "IDAT", raw.ToArray());
-        Chunk(png, "IEND", []);
-        return png.ToArray();
-    }
-
-    static void Chunk(Stream s, string type, byte[] data)
-    {
-        var len = new byte[4]; WriteBe(len, 0, (uint)data.Length); s.Write(len);
-        var t = System.Text.Encoding.ASCII.GetBytes(type); s.Write(t); s.Write(data);
-        uint c = 0xffffffff;
-        foreach (var b in t) c = Crc[(c ^ b) & 0xff] ^ (c >> 8);
-        foreach (var b in data) c = Crc[(c ^ b) & 0xff] ^ (c >> 8);
-        var crc = new byte[4]; WriteBe(crc, 0, c ^ 0xffffffff); s.Write(crc);
-    }
-
-    static void WriteBe(byte[] b, int o, uint v) { b[o] = (byte)(v >> 24); b[o + 1] = (byte)(v >> 16); b[o + 2] = (byte)(v >> 8); b[o + 3] = (byte)v; }
-
-    static uint[] BuildCrc()
-    {
-        var t = new uint[256];
-        for (uint n = 0; n < 256; n++)
-        {
-            uint c = n;
-            for (int k = 0; k < 8; k++) c = (c & 1) != 0 ? 0xedb88320 ^ (c >> 1) : c >> 1;
-            t[n] = c;
-        }
-        return t;
     }
 }

@@ -37,6 +37,7 @@ public partial class MainWindow : Window
         ["FFlags Settings"] = () => new FlagSettingsPage(),
         ["Preset"] = () => new PresetPage(),
         ["Shaders"] = () => new ShadersPage(),
+        ["Mods"] = () => new ModsPage(),
         ["Settings"] = () => new SettingsPage(),
         ["Appearance"] = () => new AppearancePage(),
     };

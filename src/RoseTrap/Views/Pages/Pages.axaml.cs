@@ -2,6 +2,8 @@ using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
+using RoseTrap.Core.Mods;
 using RoseTrap.ViewModels;
 
 namespace RoseTrap.Views.Pages;
@@ -72,6 +74,44 @@ public partial class AppearancePage : UserControl
             {
                 if (s.IsChecked == true && DataContext is MainViewModel vm) vm.AccentIndex = int.Parse((string)s.Tag!);
             };
+    }
+}
+
+public partial class ModsPage : UserControl
+{
+    public ModsPage()
+    {
+        InitializeComponent();
+        ChooseSoundButton.Click += async (_, _) =>
+        {
+            if (await PickFile("Choose a death sound", "Sound", ModSet.SoundExtensions) is { } path && DataContext is MainViewModel vm)
+                vm.SetDeathSoundFile(path);
+        };
+        ChooseFontButton.Click += async (_, _) =>
+        {
+            if (await PickFile("Choose a font", "Font", ModSet.FontExtensions) is { } path && DataContext is MainViewModel vm)
+                vm.SetFontFile(path);
+        };
+        OpenModFolderButton.Click += (_, _) =>
+        {
+            if (DataContext is not MainViewModel vm) return;
+            Shell.OpenFolder(vm.ModFolder);
+            vm.RefreshModFolder();
+        };
+        // The folder may have changed while RoseTrap was in the background.
+        AttachedToVisualTree += (_, _) => (DataContext as MainViewModel)?.RefreshModFolder();
+    }
+
+    async Task<string?> PickFile(string title, string kind, string[] extensions)
+    {
+        if (TopLevel.GetTopLevel(this)?.StorageProvider is not { } storage) return null;
+        var files = await storage.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = title,
+            AllowMultiple = false,
+            FileTypeFilter = [new FilePickerFileType(kind) { Patterns = extensions.Select(e => "*" + e).ToList() }],
+        });
+        return files.FirstOrDefault()?.TryGetLocalPath();
     }
 }
 

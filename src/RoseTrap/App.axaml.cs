@@ -22,7 +22,7 @@ public partial class App : Application
             var vm = new MainViewModel();
             var window = new MainWindow { DataContext = vm };
             desktop.MainWindow = window;
-            desktop.ShutdownRequested += (_, _) => { vm.SaveNow(); vm.Shader.Shutdown(); };
+            desktop.ShutdownRequested += (_, _) => { vm.SaveNow(); vm.Shader.Shutdown(); vm.Crosshair.Shutdown(); };
             vm.RegisterLinks();
 
             // Opened from a "Play" button on the website: go straight to launching.
@@ -36,7 +36,13 @@ public partial class App : Application
             {
                 var page = args[pi + 1];
                 bool hover = args.Contains("--expanded");
-                window.Opened += (_, _) => { window.Navigate(page, instant: true); if (hover) window.ShowSidebarExpanded(); };
+                bool crosshair = args.Contains("--test-crosshair");
+                window.Opened += (_, _) =>
+                {
+                    window.Navigate(page, instant: true);
+                    if (hover) window.ShowSidebarExpanded();
+                    if (crosshair) vm.Crosshair.Test(TimeSpan.FromSeconds(30));
+                };
             }
         }
         base.OnFrameworkInitializationCompleted();

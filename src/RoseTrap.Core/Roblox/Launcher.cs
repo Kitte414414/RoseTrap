@@ -27,6 +27,15 @@ public sealed class Launcher(Installer installer, AppPaths paths)
         return result;
     }
 
+    /// <summary>Places the mod files (skybox, cursor, sounds, font, mod folder) into a RoseTrap-owned install.</summary>
+    public (Mods.ModApplyResult Result, IReadOnlyList<string> Warnings) ApplyMods(AppSettings s, RobloxInstall install)
+    {
+        if (install.Official) throw new InvalidOperationException("RoseTrap never modifies the official Roblox install.");
+        Shaders.Skyboxes.MigrateLegacyBackup(install.Directory);
+        var set = Mods.ModSet.Build(s, install.Directory, paths);
+        return (Mods.ModApplier.Apply(install.Directory, set.Files), set.Warnings);
+    }
+
     public async Task<LaunchResult> LaunchAsync(AppSettings s, string? link, IProgress<InstallProgress>? progress, CancellationToken ct)
     {
         var install = await installer.EnsureLatestAsync(s.Launcher.Channel, progress, ct);
@@ -59,12 +68,13 @@ public sealed class Launcher(Installer installer, AppPaths paths)
 
         try
         {
-            if (!install.Official) Shaders.Skyboxes.Apply(install.Directory, s.Shaders.Skybox, paths.SkyboxCache);
-            else if (s.Shaders.Skybox != Shaders.Skyboxes.Default) warnings.Add("Skybox needs RoseTrap's own Roblox install (you're offline on the official one).");
+            if (!install.Official) warnings.AddRange(ApplyMods(s, install).Warnings);
+            else if (Mods.ModSet.Build(s, install.Directory, paths).Files.Count > 0)
+                warnings.Add("Mods and skyboxes need RoseTrap's own Roblox install (you're offline on the official one).");
         }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException)
         {
-            warnings.Add($"Skybox wasn't applied: {e.Message}");
+            warnings.Add($"Mods weren't applied: {e.Message}");
         }
 
         if (s.Launcher.MultiInstance && OperatingSystem.IsWindows())

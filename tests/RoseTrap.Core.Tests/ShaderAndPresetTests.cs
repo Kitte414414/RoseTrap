@@ -69,23 +69,24 @@ public class SkyboxTests
     }
 
     [Fact]
-    public void ApplyBacksUpAndDefaultRestores()
+    public void SkyboxFilesAreCachedAndMigrationRestoresOldBackup()
     {
         using var t = new TempDir();
-        var sky = Skyboxes.SkyFolder(t.Path);
-        Directory.CreateDirectory(sky);
-        foreach (var f in Skyboxes.Faces) File.WriteAllText(Path.Combine(sky, $"sky512_{f}.tex"), "original-" + f);
-        File.SetAttributes(Path.Combine(sky, "sky512_up.tex"), FileAttributes.ReadOnly);
         var cache = t.File("cache");
+        var files = Skyboxes.Files("Midnight", cache).ToList();
+        Assert.Equal(6, files.Count);
+        Assert.All(files, f => Assert.Equal(0x89, File.ReadAllBytes(f.Source)[0]));
+        Assert.Empty(Skyboxes.Files(Skyboxes.Default, cache));
 
-        Skyboxes.Apply(t.Path, "Midnight", cache);
-        Assert.Equal("Midnight", Skyboxes.Current(t.Path, cache));
-        Assert.Equal(0x89, File.ReadAllBytes(Path.Combine(sky, "sky512_bk.tex"))[0]);
-
-        Skyboxes.Apply(t.Path, "Aurora", cache);   // switching keeps the first (real) backup
-        Skyboxes.Apply(t.Path, Skyboxes.Default, cache);
-        Assert.Equal("original-bk", File.ReadAllText(Path.Combine(sky, "sky512_bk.tex")));
-        Assert.Equal(Skyboxes.Default, Skyboxes.Current(t.Path, cache));
+        // v0.2.0 layout: modified faces + "sky.rosetrap-original" with Roblox's originals.
+        var sky = Path.Combine(t.Path, "PlatformContent", "pc", "textures", "sky");
+        Directory.CreateDirectory(sky);
+        Directory.CreateDirectory(sky + ".rosetrap-original");
+        File.WriteAllText(Path.Combine(sky, "sky512_bk.tex"), "modded");
+        File.WriteAllText(Path.Combine(sky + ".rosetrap-original", "sky512_bk.tex"), "original");
+        Skyboxes.MigrateLegacyBackup(t.Path);
+        Assert.Equal("original", File.ReadAllText(Path.Combine(sky, "sky512_bk.tex")));
+        Assert.False(Directory.Exists(sky + ".rosetrap-original"));
     }
 }
 

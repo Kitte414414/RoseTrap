@@ -28,10 +28,11 @@ jobs:
           $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
           Write-Host "screen $($b.Width)x$($b.Height)"
           New-Item -ItemType Directory shots | Out-Null
-          $pages = @("Welcome","General","Global","FFlags","FFlags Settings","Preset","Shaders","Settings","Appearance")
+          $pages = @("Welcome","General","Global","FFlags","FFlags Settings","Preset","Shaders","Mods","Settings","Appearance")
           foreach ($p in $pages) {
-            foreach ($mode in @("", "--expanded")) {
-              if ($mode -and $p -ne "Global") { continue }
+            foreach ($mode in @("", "--expanded", "--test-crosshair")) {
+              if ($mode -eq "--expanded" -and $p -ne "Global") { continue }
+              if ($mode -eq "--test-crosshair" -and $p -ne "Mods") { continue }
               $args = @("--page", "`"$p`"")
               if ($mode) { $args += $mode }
               $proc = Start-Process publish\RoseTrap.exe -ArgumentList $args -PassThru
@@ -39,7 +40,7 @@ jobs:
               $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
               $g = [System.Drawing.Graphics]::FromImage($bmp)
               $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
-              $name = ($p -replace ' ', '') + ($(if ($mode) { "-expanded" } else { "" }))
+              $name = ($p -replace " ", "") + $(if ($mode) { $mode.Replace("--", "-") } else { "" })
               $bmp.Save("shots\$name.png", [System.Drawing.Imaging.ImageFormat]::Png)
               $g.Dispose(); $bmp.Dispose()
               Stop-Process -Id $proc.Id -Force

@@ -88,11 +88,43 @@ public sealed class GamePresetSettings
     public string? Always { get; set; }
 }
 
+public enum CrosshairStyle { Cross, CrossDot, Dot, Circle, T }
+
+public sealed class CrosshairSettings
+{
+    public bool Enabled { get; set; }
+    public CrosshairStyle Style { get; set; } = CrosshairStyle.Cross;
+    /// <summary>Arm length in pixels.</summary>
+    public double Size { get; set; } = 7;
+    public double Thickness { get; set; } = 2;
+    public double Gap { get; set; } = 4;
+    public string Color { get; set; } = "#F3ADBD";
+    public double Opacity { get; set; } = 1;
+    public bool Outline { get; set; } = true;
+    /// <summary>Draw only while Roblox is the window in front.</summary>
+    public bool OnlyWhenRobloxFocused { get; set; } = true;
+
+    public CrosshairSettings Clone() => (CrosshairSettings)MemberwiseClone();
+}
+
+public sealed class ModSettings
+{
+    public string Cursor { get; set; } = Mods.CursorArt.Default;
+    public string ShiftLock { get; set; } = Mods.CursorArt.Default;
+    /// <summary>"Default", "Classic oof" or "Custom file".</summary>
+    public string DeathSound { get; set; } = "Default";
+    public string? DeathSoundFile { get; set; }
+    public string? FontFile { get; set; }
+    public bool UseModFolder { get; set; } = true;
+    public CrosshairSettings Crosshair { get; set; } = new();
+}
+
 public sealed class AppSettings
 {
     public GraphicsSettings Graphics { get; set; } = new();
     public Preset Preset { get; set; } = Preset.Balanced;
     public ShaderSettings Shaders { get; set; } = new();
+    public ModSettings Mods { get; set; } = new();
     public GamePresetSettings GamePresets { get; set; } = new();
     public List<CustomFlag> CustomFlags { get; set; } = [];
     /// <summary>Custom flag names RoseTrap wrote before, so deleting one also removes it from Roblox.</summary>

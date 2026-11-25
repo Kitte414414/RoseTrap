@@ -7,10 +7,12 @@ internal static class FileUtil
     /// Read-only targets (people lock Roblox's settings so the game can't reset them)
     /// are unlocked for the write and locked again afterwards.
     /// </summary>
-    public static void WriteAtomic(string path, string contents)
+    public static void WriteAtomic(string path, string contents) => WriteAtomicCore(path, tmp => File.WriteAllText(tmp, contents));
+
+    static void WriteAtomicCore(string path, Action<string> write)
     {
         var tmp = path + ".tmp";
-        File.WriteAllText(tmp, contents);
+        write(tmp);
         bool locked = Unlock(path);
         try
         {
@@ -22,6 +24,8 @@ internal static class FileUtil
             if (File.Exists(tmp)) File.Delete(tmp);
         }
     }
+
+    public static void WriteAtomic(string path, byte[] contents) => WriteAtomicCore(path, tmp => File.WriteAllBytes(tmp, contents));
 
     /// <summary>File.Copy that also works when the destination is read-only; keeps the lock.</summary>
     public static void CopyOver(string from, string to)

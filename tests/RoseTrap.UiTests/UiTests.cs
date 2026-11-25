@@ -72,7 +72,7 @@ public class UiTests : IDisposable
     public void EveryPageRenders()
     {
         var (w, _) = Open();
-        foreach (var page in new[] { "Welcome", "General", "Global", "FFlags", "FFlags Settings", "Preset", "Shaders", "Settings", "Appearance" })
+        foreach (var page in new[] { "Welcome", "General", "Global", "FFlags", "FFlags Settings", "Preset", "Shaders", "Mods", "Settings", "Appearance" })
         {
             w.Navigate(page);
             Wait(700);
@@ -175,6 +175,38 @@ public class UiTests : IDisposable
         w.Navigate("FFlags");
         Wait(700);
         Snap(w, "FFlagsWithRow");
+    }
+
+    [AvaloniaFact]
+    public void ModsPagePicksStylesAndPreviewsCrosshair()
+    {
+        var (w, vm) = Open();
+        w.Navigate("Mods");
+        Wait(400);
+        Assert.Equal(6, vm.CursorChoices.Count);
+        Assert.True(vm.CursorChoices.Skip(1).All(c => c.Normal != null && c.Hover != null));
+
+        vm.CursorChoices.First(c => c.Name == "Rose").IsSelected = true;
+        Assert.Equal("Rose", vm.Settings.Mods.Cursor);
+        Assert.False(vm.CursorChoices[0].IsSelected);
+
+        vm.ShiftLockChoices.First(c => c.Name == "Rose ring").IsSelected = true;
+        vm.DeathSoundIndex = 1;
+        Assert.Equal("Classic oof", vm.Settings.Mods.DeathSound);
+
+        vm.CrosshairStyleIndex = 1;
+        vm.CrosshairGap = 6;
+        vm.SetCrosshairColorCommand.Execute("#4DFF6A");
+        Assert.Equal("#4DFF6A", vm.CrosshairPreview.Color);
+        Assert.Equal(6, vm.CrosshairPreview.Gap);
+        vm.CrosshairColor = "not a colour";
+        Assert.Equal("#4DFF6A", vm.CrosshairColor);
+        Wait(100);
+        Snap(w, "Mods");
+        var sv = w.LoadedPages.Single(p => p.IsVisible).GetLogicalDescendants().OfType<ScrollViewer>().First();
+        sv.Offset = new Vector(0, 560);
+        Wait(100);
+        Snap(w, "ModsBottom");
     }
 
     [AvaloniaFact]

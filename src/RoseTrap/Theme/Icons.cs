@@ -20,6 +20,7 @@ internal static class Icons
         r["Icon.Shaders"] = P(IconData.Shaders);
         r["Icon.Settings"] = Fit(P(IconData.Tools), IconData.ToolsWidth, IconData.ToolsHeight, inset: 2.5);
         r["Icon.Appearance"] = P(IconData.Appearance);
+        r["Icon.Mods"] = P(IconData.Mods);
         foreach (var (key, data) in new[]
                  {
                      ("Potato", IconData.Potato), ("Balanced", IconData.Balanced), ("Quality", IconData.Quality),

@@ -57,5 +57,28 @@ public class WindowsEndToEndTests(ITestOutputHelper log)
         var again = await installer.EnsureLatestAsync("LIVE", null, CancellationToken.None);
         Assert.Equal(result.Install.Directory, again.Directory);
         Assert.True(sw.Elapsed < TimeSpan.FromSeconds(20));
+
+        // Mods against the real install: every replaced file must come back byte-for-byte.
+        var launcher = new Launcher(installer, paths);
+        string[] touched = [Mods.ModSet.PointerPath, Mods.ModSet.HoverPath, Mods.ModSet.ShiftLockPath, Mods.ModSet.DeathSoundPath,
+                            Shaders.Skyboxes.FacePath("bk"), "content/fonts/families/BuilderSans.json"];
+        string Abs(string rel) => Path.Combine(again.Directory, rel.Replace('/', Path.DirectorySeparatorChar));
+        var before = touched.ToDictionary(r => r, r => File.ReadAllBytes(Abs(r)));
+        var font = Path.Combine(again.Directory, "content", "fonts", "Arimo-Regular.ttf");
+        var modded = new AppSettings
+        {
+            Shaders = { Skybox = "Rose Dusk" },
+            Mods = { Cursor = "Rose", ShiftLock = "Rose ring", DeathSound = "Classic oof", FontFile = font },
+        };
+        var (applied, modWarnings) = launcher.ApplyMods(modded, again);
+        log.WriteLine($"mods: {applied}, warnings: {string.Join(" | ", modWarnings)}");
+        Assert.Empty(modWarnings);
+        Assert.All(touched, r => Assert.NotEqual(before[r], File.ReadAllBytes(Abs(r))));
+        Assert.Equal(File.ReadAllBytes(Abs("content/sounds/oof.ogg")), File.ReadAllBytes(Abs(Mods.ModSet.DeathSoundPath)));
+
+        var (restored, _) = launcher.ApplyMods(new AppSettings(), again);
+        Assert.True(restored.Restored >= touched.Length);
+        Assert.All(touched, r => Assert.Equal(before[r], File.ReadAllBytes(Abs(r))));
+        Assert.False(File.Exists(Abs("content/fonts/CustomFont.ttf")));
     }
 }

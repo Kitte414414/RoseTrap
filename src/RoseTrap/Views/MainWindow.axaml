@@ -106,6 +106,7 @@
               <Button Classes="nav" Tag="FFlags Settings" Content="Flag settings" />
               <Button Classes="nav" Tag="Preset" Content="Game presets" />
               <Button Classes="nav" Tag="Shaders" Content="Shaders" />
+              <Button Classes="nav" Tag="Mods" Content="Mods" />
             </StackPanel>
           </DockPanel>
         </Panel>

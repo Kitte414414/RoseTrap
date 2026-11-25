@@ -74,6 +74,7 @@ public sealed partial class MainViewModel : ObservableObject
         RefreshFilter();
         _installed = _installer.FindLocal();
         InitShaders();
+        InitMods();
         _robloxWatch = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
         _robloxWatch.Tick += (_, _) =>
         {
@@ -178,7 +179,8 @@ public sealed partial class MainViewModel : ObservableObject
             if (_s.Launcher.CloseAfterLaunch)
             {
                 if (_launcher.HoldsMultiInstanceLock) MinimizeRequested?.Invoke();
-                else if (Sh.Enabled && ShaderService.IsSupported) { MinimizeRequested?.Invoke(); _robloxWatch.Start(); }
+                // Shaders and the crosshair are drawn by RoseTrap, so it has to keep running while you play.
+                else if ((Sh.Enabled && ShaderService.IsSupported) || (Ch.Enabled && CrosshairService.IsSupported)) { MinimizeRequested?.Invoke(); _robloxWatch.Start(); }
                 else CloseRequested?.Invoke();
             }
         }
