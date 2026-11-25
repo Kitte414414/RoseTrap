@@ -4,7 +4,10 @@ using RoseTrap.Core.Settings;
 
 namespace RoseTrap.Core.Roblox;
 
-public sealed record LaunchResult(RobloxInstall Install, ApplyResult? Flags, IReadOnlyList<string> Skipped, bool BasicSettingsWritten);
+public sealed record LaunchResult(RobloxInstall Install, ApplyResult? Flags, IReadOnlyList<string> Skipped, bool BasicSettingsWritten)
+{
+    public IReadOnlyList<string> Warnings { get; init; } = [];
+}
 
 /// <summary>Install or update, apply settings, start the player. The whole "Launch" button.</summary>
 public sealed class Launcher(Installer installer, AppPaths paths)
