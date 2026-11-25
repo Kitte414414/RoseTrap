@@ -11,7 +11,11 @@ public sealed class TempDir : IDisposable
 {
     public string Path { get; } = Directory.CreateTempSubdirectory("rosetrap-").FullName;
     public string File(string name) => System.IO.Path.Combine(Path, name);
-    public void Dispose() => Directory.Delete(Path, recursive: true);
+    public void Dispose()
+    {
+        foreach (var f in Directory.EnumerateFiles(Path, "*", SearchOption.AllDirectories)) System.IO.File.SetAttributes(f, FileAttributes.Normal);
+        Directory.Delete(Path, recursive: true);
+    }
 }
 
 public class FlagCatalogTests

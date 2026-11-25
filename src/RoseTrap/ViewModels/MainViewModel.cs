@@ -461,7 +461,7 @@ public sealed partial class MainViewModel : ObservableObject
             OnPropertyChanged(nameof(InstallSource));
             Toast?.Invoke("Roblox will be downloaded fresh on the next launch");
         }
-        catch (IOException) { Toast?.Invoke("Close Roblox first, then try again"); }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException) { Toast?.Invoke("Close Roblox first, then try again"); }
     }
 
     // ---------- Appearance ----------

@@ -4,10 +4,10 @@
              x:Class="RoseTrap.Views.Pages.WelcomePage">
   <Grid>
     <c:VineFrame />
-    <Grid RowDefinitions="*,Auto,6*,Auto,*" Margin="24,22,24,34">
+    <Grid RowDefinitions="*,Auto,10*,Auto,*" Margin="24,18,24,26">
       <TextBlock Grid.Row="1" Text="Select a module" HorizontalAlignment="Center" FontSize="22" FontWeight="Medium"
                  LetterSpacing="0.5" Foreground="#e8dfe2" />
-      <Panel Grid.Row="2" MaxWidth="600" MaxHeight="470" Margin="0,4">
+      <Panel Grid.Row="2" MaxWidth="640" MaxHeight="520" Margin="0,4">
         <Ellipse Width="340" Height="300" Opacity="0.9" VerticalAlignment="Center" IsHitTestVisible="False">
           <Ellipse.Fill>
             <RadialGradientBrush>

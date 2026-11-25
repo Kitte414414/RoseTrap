@@ -60,7 +60,10 @@ public static class Skyboxes
             foreach (var face in Faces)
             {
                 var src = Path.Combine(sky, $"sky512_{face}.tex");
-                if (File.Exists(src)) File.Copy(src, Path.Combine(backup, Path.GetFileName(src)));
+                if (!File.Exists(src)) continue;
+                var dst = Path.Combine(backup, Path.GetFileName(src));
+                File.Copy(src, dst);
+                File.SetAttributes(dst, FileAttributes.Normal); // a read-only copy would block later clean-up
             }
         }
 
