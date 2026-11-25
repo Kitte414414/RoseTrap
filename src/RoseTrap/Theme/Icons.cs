@@ -24,6 +24,8 @@ internal static class Icons
                  {
                      ("Potato", IconData.Potato), ("Balanced", IconData.Balanced), ("Quality", IconData.Quality),
                      ("Custom", IconData.Custom), ("Play", IconData.Play), ("Close", IconData.Close), ("Folder", IconData.Folder),
+                     ("Shooter", IconData.Shooter), ("Fight", IconData.Fight), ("World", IconData.World),
+                     ("Simulator", IconData.Simulator), ("Atmosphere", IconData.Atmosphere), ("Sparkle", IconData.Sparkle),
                  })
             r["Icon." + key] = P(data);
     }

@@ -4,53 +4,60 @@
              x:Class="RoseTrap.Views.Pages.SettingsPage"
              x:DataType="vm:MainViewModel">
   <ScrollViewer>
-    <StackPanel Margin="24,22,24,30" Spacing="14">
-      <StackPanel>
-        <TextBlock Classes="h2" Text="Settings" />
-        <TextBlock Classes="sub" Text="RoseTrap itself." />
-      </StackPanel>
+    <StackPanel Classes="page">
+      <Grid Classes="page-head">
+        <StackPanel>
+          <TextBlock Classes="h2" Text="Settings" />
+          <TextBlock Classes="sub" Text="RoseTrap itself." />
+        </StackPanel>
+      </Grid>
       <Grid ColumnDefinitions="*,14,*">
         <Border Classes="panel">
           <StackPanel>
-            <TextBlock Classes="h3" Text="Launching" />
+            <StackPanel Classes="head">
+              <TextBlock Classes="h3" Text="Launching" />
+              <TextBlock Classes="sub" Text="What happens when you press Play." />
+            </StackPanel>
+            <Border Classes="divider" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Open Roblox links with RoseTrap" /><TextBlock Classes="hint" Text="The website's Play button goes through RoseTrap." /></StackPanel>
+              <StackPanel><TextBlock Classes="label" Text="Open Roblox links with RoseTrap" /><TextBlock Classes="hint" Text="The website's Play button goes through RoseTrap." /></StackPanel>
               <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding InterceptLinks}" />
             </Grid>
             <Border Classes="divider" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Close after launching" /></StackPanel>
+              <StackPanel><TextBlock Classes="label" Text="Close after launching" /><TextBlock Classes="hint" Text="Minimises instead while shaders are on." /></StackPanel>
               <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding CloseAfterLaunch}" />
             </Grid>
             <Border Classes="divider" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Multiple instances" /><TextBlock Classes="hint" Text="Run several Roblox windows. RoseTrap stays open." /></StackPanel>
+              <StackPanel><TextBlock Classes="label" Text="Multiple instances" /><TextBlock Classes="hint" Text="Run several Roblox windows. RoseTrap stays open." /></StackPanel>
               <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding MultiInstance}" />
             </Grid>
           </StackPanel>
         </Border>
         <Border Grid.Column="2" Classes="panel">
           <StackPanel>
-            <Grid ColumnDefinitions="*,Auto">
+            <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12">
               <StackPanel>
                 <TextBlock Classes="h3" Text="Roblox install" />
                 <TextBlock Classes="sub" Text="{Binding InstallSource}" />
               </StackPanel>
               <Border Grid.Column="1" Classes="chip"><TextBlock Text="{Binding InstalledVersion}" /></Border>
             </Grid>
+            <Border Classes="divider" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Channel" /><TextBlock Classes="hint" Text="LIVE unless you're testing a beta." /></StackPanel>
-              <TextBox Grid.Column="1" Classes="mono" Width="120" Text="{Binding Channel}" VerticalAlignment="Center" />
+              <StackPanel><TextBlock Classes="label" Text="Channel" /><TextBlock Classes="hint" Text="LIVE unless you're testing a beta." /></StackPanel>
+              <TextBox Grid.Column="1" Classes="mono" Width="120" Text="{Binding Channel}" />
             </Grid>
             <Border Classes="divider" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Reinstall" /><TextBlock Classes="hint" Text="Fixes a broken install." /></StackPanel>
+              <StackPanel><TextBlock Classes="label" Text="Reinstall" /><TextBlock Classes="hint" Text="Fixes a broken install." /></StackPanel>
               <Button Grid.Column="1" Content="Reinstall" Command="{Binding ReinstallCommand}" />
             </Grid>
             <Border Classes="divider" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="RoseTrap folder" /></StackPanel>
-              <Button Grid.Column="1" Classes="ghost" Name="OpenRootButton" Content="Open folder" />
+              <StackPanel><TextBlock Classes="label" Text="RoseTrap folder" /><TextBlock Classes="hint" Text="Settings, Roblox copy, skybox cache." /></StackPanel>
+              <Button Grid.Column="1" Name="OpenRootButton" Content="Open folder" />
             </Grid>
           </StackPanel>
         </Border>

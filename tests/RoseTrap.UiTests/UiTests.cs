@@ -31,7 +31,8 @@ public class UiTests : IDisposable
     readonly string _root = Directory.CreateTempSubdirectory("rosetrap-ui-").FullName;
     static readonly string Out = Environment.GetEnvironmentVariable("ROSETRAP_SNAPSHOTS") ?? Path.Combine(Path.GetTempPath(), "rosetrap-snapshots");
 
-    public void Dispose() => Directory.Delete(_root, recursive: true);
+    // The debounced settings save can still be writing; a leftover temp dir is harmless.
+    public void Dispose() { try { Directory.Delete(_root, recursive: true); } catch (IOException) { } }
 
     (MainWindow Window, MainViewModel Vm) Open(bool animations = false)
     {
@@ -106,7 +107,7 @@ public class UiTests : IDisposable
     public void TabSwitchFadesInAndRoseStopsOffWelcome()
     {
         var (w, _) = Open(animations: true);
-        var rose = w.GetLogicalDescendants().OfType<AsciiRose>().Single();
+        var rose = w.GetLogicalDescendants().OfType<LogoRose>().Single();
         Assert.True(rose.IsRunning);
 
         w.Navigate("General");
@@ -179,7 +180,7 @@ public class UiTests : IDisposable
     [AvaloniaFact]
     public void RoseDrawsCharacters()
     {
-        var rose = new AsciiRose { Width = 560, Height = 420 };
+        var rose = new LogoRose { Width = 560, Height = 420 };
         var w = new Window { Content = rose, Width = 560, Height = 420, Background = Brushes.Black };
         w.Show();
         rose.Advance(1200);

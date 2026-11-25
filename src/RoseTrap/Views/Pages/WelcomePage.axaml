@@ -8,7 +8,7 @@
       <TextBlock Grid.Row="1" Text="Select a module" HorizontalAlignment="Center" FontSize="22" FontWeight="Medium"
                  LetterSpacing="0.5" Foreground="#e8dfe2" />
       <Panel Grid.Row="2" MaxWidth="600" MaxHeight="470" Margin="0,4">
-        <Ellipse Width="300" Height="170" Opacity="0.9" VerticalAlignment="Center" IsHitTestVisible="False">
+        <Ellipse Width="340" Height="300" Opacity="0.9" VerticalAlignment="Center" IsHitTestVisible="False">
           <Ellipse.Fill>
             <RadialGradientBrush>
               <GradientStop Offset="0" Color="#28a64f68" />
@@ -17,7 +17,7 @@
             </RadialGradientBrush>
           </Ellipse.Fill>
         </Ellipse>
-        <c:AsciiRose Name="Rose" />
+        <c:LogoRose Name="Rose" />
       </Panel>
       <TextBlock Grid.Row="3" Text="Pick a section on the left" HorizontalAlignment="Center" FontSize="12"
                  Foreground="#877b81" />

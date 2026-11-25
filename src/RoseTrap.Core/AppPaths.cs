@@ -10,6 +10,7 @@ public sealed class AppPaths
         Versions = Path.Combine(Root, "Versions");
         Downloads = Path.Combine(Root, "Downloads");
         SettingsFile = Path.Combine(Root, "settings.json");
+        SkyboxCache = Path.Combine(Root, "Skyboxes");
         RobloxRoot = Path.Combine(localAppData, "Roblox");
         GlobalClientSettings = Path.Combine(RobloxRoot, "ClientSettings", Flags.ClientSettingsFile.FileName);
         GlobalBasicSettings = Path.Combine(RobloxRoot, "GlobalBasicSettings_13.xml");
@@ -24,6 +25,7 @@ public sealed class AppPaths
     public string Versions { get; }
     public string Downloads { get; }
     public string SettingsFile { get; }
+    public string SkyboxCache { get; }
     public string RobloxRoot { get; }
     public string GlobalClientSettings { get; }
     public string GlobalBasicSettings { get; }

@@ -6,6 +6,7 @@ using RoseTrap.Core;
 using RoseTrap.Core.Flags;
 using RoseTrap.Core.Roblox;
 using RoseTrap.Core.Settings;
+using RoseTrap.Services;
 
 namespace RoseTrap.ViewModels;
 
@@ -52,6 +53,9 @@ public sealed partial class MainViewModel : ObservableObject
 
     public event Action<string>? Toast;
     public event Action? CloseRequested;
+    /// <summary>RoseTrap has to stay running (shaders, multi-instance) but should get out of the way.</summary>
+    public event Action? MinimizeRequested;
+    readonly Avalonia.Threading.DispatcherTimer _robloxWatch;
     public event Action? AppearanceChanged;
 
     public MainViewModel() : this(AppPaths.Default, null) { }
@@ -69,6 +73,13 @@ public sealed partial class MainViewModel : ObservableObject
         foreach (var f in _s.CustomFlags) Flags.Add(new FlagRow(f, FlagsChanged));
         RefreshFilter();
         _installed = _installer.FindLocal();
+        InitShaders();
+        _robloxWatch = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+        _robloxWatch.Tick += (_, _) =>
+        {
+            // Stayed open after launching only for shaders: leave once the game is closed.
+            if (!RoseTrap.Services.ShaderService.RobloxRunning()) { _robloxWatch.Stop(); CloseRequested?.Invoke(); }
+        };
     }
 
     public AppSettings Settings => _s;
@@ -162,8 +173,14 @@ public sealed partial class MainViewModel : ObservableObject
             SaveNow();
             LaunchStatus = "Roblox started";
             foreach (var w in r.Warnings) Toast?.Invoke(w);
+            if (r.GamePreset != null) Toast?.Invoke($"Game preset: {r.GamePreset}");
             Toast?.Invoke(r.BasicSettingsWritten || r.Warnings.Count > 0 ? "Roblox started" : "Roblox started · FPS cap applies after its first run");
-            if (_s.Launcher.CloseAfterLaunch && !_launcher.HoldsMultiInstanceLock) CloseRequested?.Invoke();
+            if (_s.Launcher.CloseAfterLaunch)
+            {
+                if (_launcher.HoldsMultiInstanceLock) MinimizeRequested?.Invoke();
+                else if (Sh.Enabled && ShaderService.IsSupported) { MinimizeRequested?.Invoke(); _robloxWatch.Start(); }
+                else CloseRequested?.Invoke();
+            }
         }
         catch (Exception e)
         {

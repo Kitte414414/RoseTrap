@@ -4,29 +4,81 @@
              xmlns:c="using:RoseTrap.Controls"
              x:Class="RoseTrap.Views.Pages.GlobalPage"
              x:DataType="vm:MainViewModel">
+  <UserControl.Styles>
+    <Style Selector="TextBlock.title">
+      <Setter Property="FontSize" Value="13" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="#f0e7ea" />
+      <Setter Property="Margin" Value="0,10,0,2" />
+    </Style>
+  </UserControl.Styles>
   <ScrollViewer>
-    <StackPanel Margin="24,22,24,30" Spacing="14">
-      <StackPanel>
-        <TextBlock Classes="h2" Text="Global" />
-        <TextBlock Classes="sub" Text="Rendering options applied to every game." />
-      </StackPanel>
+    <StackPanel Classes="page">
+      <Grid Classes="page-head">
+        <StackPanel>
+          <TextBlock Classes="h2" Text="Global" />
+          <TextBlock Classes="sub" Text="Graphics for every game: a preset to start from, then fine-tune." />
+        </StackPanel>
+      </Grid>
+
+      <Border Classes="panel">
+        <StackPanel>
+          <StackPanel Classes="head">
+            <TextBlock Classes="h3" Text="Graphics preset" />
+            <TextBlock Classes="sub" Text="One click sets everything below. Changing any option makes it Custom." />
+          </StackPanel>
+          <UniformGrid Columns="4" Margin="-5,0,-5,14">
+            <RadioButton Classes="preset" Margin="5" GroupName="gfx" IsChecked="{Binding IsPotatoPreset}">
+              <StackPanel>
+                <Viewbox Classes="icon"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Potato}" /></Canvas></Viewbox>
+                <TextBlock Classes="title" Text="Potato" />
+                <TextBlock Classes="hint" Text="Everything off. Old laptops." />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Classes="preset" Margin="5" GroupName="gfx" IsChecked="{Binding IsBalancedPreset}">
+              <StackPanel>
+                <Viewbox Classes="icon"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Balanced}" /></Canvas></Viewbox>
+                <TextBlock Classes="title" Text="Balanced" />
+                <TextBlock Classes="hint" Text="Roblox decides. Stable FPS." />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Classes="preset" Margin="5" GroupName="gfx" IsChecked="{Binding IsQualityPreset}">
+              <StackPanel>
+                <Viewbox Classes="icon"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Quality}" /></Canvas></Viewbox>
+                <TextBlock Classes="title" Text="Quality" />
+                <TextBlock Classes="hint" Text="Max detail, 4× MSAA." />
+              </StackPanel>
+            </RadioButton>
+            <RadioButton Classes="preset" Margin="5" GroupName="gfx" IsChecked="{Binding IsCustomPreset}">
+              <StackPanel>
+                <Viewbox Classes="icon"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Custom}" /></Canvas></Viewbox>
+                <TextBlock Classes="title" Text="Custom" />
+                <TextBlock Classes="hint" Text="Your own options." />
+              </StackPanel>
+            </RadioButton>
+          </UniformGrid>
+        </StackPanel>
+      </Border>
 
       <Border Classes="callout" IsVisible="{Binding Potato}">
         <TextBlock Classes="hint" Margin="0" Foreground="{DynamicResource AccentBright}"
-                   Text="Potato mode is on: it overrides the options it controls. Turn it off on the General page to edit them." />
+                   Text="Potato mode is on: it overrides the options it controls. Pick another preset to edit them." />
       </Border>
 
       <Border Classes="panel">
         <StackPanel>
-          <TextBlock Classes="h3" Text="Renderer" />
-          <TextBlock Classes="sub" Text="Graphics backend and anti-aliasing." />
+          <StackPanel Classes="head">
+            <TextBlock Classes="h3" Text="Renderer" />
+            <TextBlock Classes="sub" Text="Graphics backend and anti-aliasing." />
+          </StackPanel>
+          <Border Classes="divider" />
           <Grid Classes="row" ColumnDefinitions="*,Auto">
-            <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Rendering API" /><TextBlock Classes="hint" Text="Vulkan is often smoother on newer GPUs." /></StackPanel>
+            <StackPanel><TextBlock Classes="label" Text="Rendering API" /><TextBlock Classes="hint" Text="Vulkan is often smoother on newer GPUs." /></StackPanel>
             <c:Segmented Grid.Column="1" Options="Auto,Direct3D 11,Vulkan,OpenGL" SelectedIndex="{Binding RenderApi}" />
           </Grid>
           <Border Classes="divider" />
           <Grid Classes="row" ColumnDefinitions="*,Auto">
-            <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Anti-aliasing (MSAA)" /></StackPanel>
+            <StackPanel><TextBlock Classes="label" Text="Anti-aliasing (MSAA)" /><TextBlock Classes="hint" Text="Smoother edges, costs frames." /></StackPanel>
             <c:Segmented Grid.Column="1" Options="Auto,Off,2×,4×,8×" SelectedIndex="{Binding MsaaIndex}" IsEnabled="{Binding NotPotato}" />
           </Grid>
         </StackPanel>
@@ -35,41 +87,89 @@
       <Grid ColumnDefinitions="*,14,*">
         <Border Classes="panel">
           <StackPanel>
-            <TextBlock Classes="h3" Text="Detail" />
+            <StackPanel Classes="head">
+              <TextBlock Classes="h3" Text="Detail" />
+              <TextBlock Classes="sub" Text="What gets drawn and how sharp." />
+            </StackPanel>
+            <Border Classes="divider" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <TextBlock Classes="label" Text="Texture quality" VerticalAlignment="Center" />
-              <ComboBox Grid.Column="1" SelectedIndex="{Binding Textures}" IsEnabled="{Binding NotPotato}" VerticalAlignment="Center">
+              <StackPanel><TextBlock Classes="label" Text="Texture quality" /></StackPanel>
+              <ComboBox Grid.Column="1" SelectedIndex="{Binding Textures}" IsEnabled="{Binding NotPotato}" MinWidth="150">
                 <ComboBoxItem>Automatic</ComboBoxItem><ComboBoxItem>Low</ComboBoxItem>
                 <ComboBoxItem>Medium</ComboBoxItem><ComboBoxItem>High</ComboBoxItem>
               </ComboBox>
             </Grid>
             <Border Classes="divider" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Lowest mesh detail" /><TextBlock Classes="hint" Text="Distant objects switch to simple models." /></StackPanel>
+              <StackPanel><TextBlock Classes="label" Text="Lowest mesh detail" /><TextBlock Classes="hint" Text="Distant objects use simple models." /></StackPanel>
               <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding MeshLowest}" IsEnabled="{Binding NotPotato}" />
             </Grid>
             <Border Classes="divider" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <TextBlock Classes="label" Text="Grass" VerticalAlignment="Center" />
+              <StackPanel><TextBlock Classes="label" Text="Grass" /><TextBlock Classes="hint" Text="Off hides grass everywhere." /></StackPanel>
               <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding Grass}" IsEnabled="{Binding NotPotato}" />
             </Grid>
           </StackPanel>
         </Border>
         <Border Grid.Column="2" Classes="panel">
           <StackPanel>
-            <TextBlock Classes="h3" Text="Display" />
+            <StackPanel Classes="head">
+              <TextBlock Classes="h3" Text="Display" />
+              <TextBlock Classes="sub" Text="How the game window behaves." />
+            </StackPanel>
+            <Border Classes="divider" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Exclusive fullscreen" /><TextBlock Classes="hint" Text="Alt+Enter switches to true fullscreen." /></StackPanel>
+              <StackPanel><TextBlock Classes="label" Text="Exclusive fullscreen" /><TextBlock Classes="hint" Text="Alt+Enter switches to true fullscreen. Disables shaders." /></StackPanel>
               <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding ExclusiveFullscreen}" />
             </Grid>
             <Border Classes="divider" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Ignore Windows scaling" /><TextBlock Classes="hint" Text="Sharper image on high-DPI screens." /></StackPanel>
+              <StackPanel><TextBlock Classes="label" Text="Ignore Windows scaling" /><TextBlock Classes="hint" Text="Sharper image on high-DPI screens." /></StackPanel>
               <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding DisableDpiScale}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel><TextBlock Classes="label" Text="Gray sky" /><TextBlock Classes="hint" Text="Flat gray instead of skyboxes." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding GraySky}" />
             </Grid>
           </StackPanel>
         </Border>
       </Grid>
+
+      <Border Classes="panel">
+        <StackPanel>
+          <StackPanel Classes="head">
+            <TextBlock Classes="h3" Text="Lighting" />
+            <TextBlock Classes="sub" Text="Render quality and voxel lighting work everywhere. Options marked legacy use flags Roblox ignores since its 2025 allowlist; they're written only when “Allowlist only” is off in Flag settings." />
+          </StackPanel>
+          <Border Classes="divider" />
+          <Grid Classes="slider-row" ColumnDefinitions="200,*,64">
+            <TextBlock Text="Render quality" />
+            <Slider Grid.Column="1" Minimum="0" Maximum="21" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding FrmQuality}" IsEnabled="{Binding NotPotato}" />
+            <TextBlock Grid.Column="2" Classes="val" Text="{Binding FrmLabel}" />
+          </Grid>
+          <Border Classes="divider" />
+          <Grid Classes="row" ColumnDefinitions="*,Auto">
+            <StackPanel><TextBlock Classes="label" Text="Pause voxel lighting" /><TextBlock Classes="hint" Text="Freezes lighting updates. Big FPS win; lights stop moving." /></StackPanel>
+            <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding PauseVoxelizer}" IsEnabled="{Binding NotPotato}" />
+          </Grid>
+          <Border Classes="divider" />
+          <Grid Classes="row" ColumnDefinitions="*,Auto">
+            <StackPanel><TextBlock Classes="label" Text="Technology (legacy)" /></StackPanel>
+            <c:Segmented Grid.Column="1" Options="Default,Voxel,ShadowMap,Future" SelectedIndex="{Binding Lighting}" IsEnabled="{Binding NotPotato}" />
+          </Grid>
+          <Border Classes="divider" />
+          <Grid Classes="row" ColumnDefinitions="*,Auto">
+            <StackPanel><TextBlock Classes="label" Text="Shadows (legacy)" /></StackPanel>
+            <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding Shadows}" IsEnabled="{Binding NotPotato}" />
+          </Grid>
+          <Border Classes="divider" />
+          <Grid Classes="row" ColumnDefinitions="*,Auto">
+            <StackPanel><TextBlock Classes="label" Text="Post-processing (legacy)" /></StackPanel>
+            <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding PostProcessing}" IsEnabled="{Binding NotPotato}" />
+          </Grid>
+        </StackPanel>
+      </Border>
     </StackPanel>
   </ScrollViewer>
 </UserControl>

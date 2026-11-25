@@ -68,10 +68,32 @@ public sealed class AppearanceSettings
     public bool Animations { get; set; } = true;
 }
 
+public sealed class ShaderSettings
+{
+    /// <summary>Colour grading on/off.</summary>
+    public bool Enabled { get; set; }
+    /// <summary>A preset name from <see cref="Shaders.ShaderPresets"/>, or "Custom".</summary>
+    public string Preset { get; set; } = "Rose Bloom";
+    public Shaders.ColorGrade Grade { get; set; } = Shaders.ShaderPresets.Find("Rose Bloom")!.Grade;
+    /// <summary>Grade only while Roblox is the window in front, so the rest of the desktop stays normal.</summary>
+    public bool OnlyWhenRobloxFocused { get; set; } = true;
+    public string Skybox { get; set; } = Shaders.Skyboxes.Default;
+}
+
+public sealed class GamePresetSettings
+{
+    /// <summary>Pick the matching preset automatically when a game is launched from the website.</summary>
+    public bool AutoByGame { get; set; } = true;
+    /// <summary>Preset used for every game (when auto finds nothing). Null = none.</summary>
+    public string? Always { get; set; }
+}
+
 public sealed class AppSettings
 {
     public GraphicsSettings Graphics { get; set; } = new();
     public Preset Preset { get; set; } = Preset.Balanced;
+    public ShaderSettings Shaders { get; set; } = new();
+    public GamePresetSettings GamePresets { get; set; } = new();
     public List<CustomFlag> CustomFlags { get; set; } = [];
     /// <summary>Custom flag names RoseTrap wrote before, so deleting one also removes it from Roblox.</summary>
     public List<string> WrittenCustomFlags { get; set; } = [];

@@ -7,6 +7,7 @@
     <ApplicationIcon>Assets/rosetrap.ico</ApplicationIcon>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!-- Lean release build: dotnet publish -c Release -r win-x64 -->
     <PublishTrimmed Condition="'$(Configuration)' == 'Release'">true</PublishTrimmed>
     <PublishSingleFile Condition="'$(Configuration)' == 'Release'">true</PublishSingleFile>

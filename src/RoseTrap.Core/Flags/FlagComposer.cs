@@ -6,10 +6,12 @@ namespace RoseTrap.Core.Flags;
 /// <param name="Set">Flags to write, name → value.</param>
 /// <param name="Remove">Flags RoseTrap owns that must not be in the file.</param>
 /// <param name="Skipped">Flags left out because Roblox no longer honours them.</param>
+/// <param name="GamePreset">Name of the game preset that was layered in, if any.</param>
 public sealed record FlagPlan(
     IReadOnlyDictionary<string, string> Set,
     IReadOnlySet<string> Remove,
-    IReadOnlyList<string> Skipped);
+    IReadOnlyList<string> Skipped,
+    string? GamePreset = null);
 
 /// <summary>Turns the settings the user picked into the exact fast flags to write.</summary>
 public static class FlagComposer
@@ -111,11 +113,16 @@ public static class FlagComposer
         return f;
     }
 
-    public static FlagPlan Compose(AppSettings s)
+    /// <param name="placeId">The game being launched, if known; picks its game preset.</param>
+    public static FlagPlan Compose(AppSettings s, long? placeId = null)
     {
         var desired = GraphicsFlags(s.Graphics);
 
-        // Custom flags win over options, so an expert can override anything.
+        // Layer order: graphics options < game preset < custom flags (an expert can override anything).
+        var preset = ActiveGamePreset(s, placeId);
+        if (preset != null)
+            foreach (var (name, value) in preset.Flags) desired[name] = value;
+
         foreach (var c in s.CustomFlags)
             if (c.Enabled && FlagCatalog.IsValidName(c.Name))
                 desired[c.Name] = FlagCatalog.NormalizeValue(c.Name, c.Value) ?? c.Value.Trim();
@@ -131,11 +138,16 @@ public static class FlagComposer
         }
 
         var owned = new HashSet<string>(ManagedFlags, StringComparer.Ordinal);
+        owned.UnionWith(GamePresets.AllFlagNames);
         owned.UnionWith(s.CustomFlags.Select(c => c.Name));
         owned.UnionWith(s.WrittenCustomFlags);
         owned.ExceptWith(desired.Keys);
 
         skipped.Sort(StringComparer.Ordinal);
-        return new FlagPlan(desired, owned, skipped);
+        return new FlagPlan(desired, owned, skipped, preset?.Name);
     }
+
+    /// <summary>The game's own preset when auto-detection is on and knows the game, else the "always" preset.</summary>
+    public static GamePreset? ActiveGamePreset(AppSettings s, long? placeId) =>
+        (s.GamePresets.AutoByGame ? GamePresets.ForPlace(placeId) : null) ?? GamePresets.Find(s.GamePresets.Always);
 }

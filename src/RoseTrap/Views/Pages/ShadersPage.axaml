@@ -1,64 +1,123 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:RoseTrap.ViewModels"
-             xmlns:c="using:RoseTrap.Controls"
              x:Class="RoseTrap.Views.Pages.ShadersPage"
              x:DataType="vm:MainViewModel">
   <ScrollViewer>
-    <StackPanel Margin="24,22,24,30" Spacing="14">
-      <StackPanel>
-        <TextBlock Classes="h2" Text="Shaders" />
-        <TextBlock Classes="sub" Text="Lighting, sky and post-processing: the look of every game." />
-      </StackPanel>
+    <StackPanel Classes="page">
+      <Grid Classes="page-head" ColumnDefinitions="*,Auto">
+        <StackPanel>
+          <TextBlock Classes="h2" Text="Shaders" />
+          <TextBlock Classes="sub" Text="Colour-grade the game image in real time and swap the sky. Nothing is injected into Roblox." />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+          <TextBlock Classes="label" Text="Shaders on" VerticalAlignment="Center" />
+          <ToggleButton Classes="switch" IsChecked="{Binding ShadersEnabled}" />
+        </StackPanel>
+      </Grid>
 
-      <Border Classes="callout" IsVisible="{Binding LegacyIgnored}">
+      <Border Classes="callout" IsVisible="{Binding ShadersUnsupported}">
         <TextBlock Classes="hint" Margin="0" Foreground="{DynamicResource AccentBright}"
-                   Text="Options marked “legacy” use flags Roblox has ignored since the 2025 allowlist. They're kept for private servers and older clients; turn off “Allowlist only” in FFlags Settings to write them." />
+                   Text="Colour grading uses a Windows colour filter (Windows 8 or newer). The preview still works here." />
+      </Border>
+
+      <Border Classes="panel">
+        <StackPanel>
+          <Grid Classes="row" ColumnDefinitions="*,Auto">
+            <StackPanel>
+              <TextBlock Classes="h3" Text="Shader preset" />
+              <TextBlock Classes="sub" Text="A ready-made look. Moving any slider below makes it Custom." />
+            </StackPanel>
+            <ComboBox Grid.Column="1" ItemsSource="{x:Static vm:MainViewModel.ShaderPresetNames}" SelectedIndex="{Binding ShaderPresetIndex}" />
+          </Grid>
+          <Border Classes="divider" />
+          <TextBlock Classes="note" Margin="0,12,0,12" Text="{Binding ShaderDescription}" />
+        </StackPanel>
       </Border>
 
       <Grid ColumnDefinitions="*,14,*">
         <Border Classes="panel">
           <StackPanel>
-            <TextBlock Classes="h3" Text="Lighting" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Technology" /><TextBlock Classes="hint" Text="Legacy · Future looks best, Voxel is fastest." /></StackPanel>
-              <c:Segmented Grid.Column="1" Options="Default,Voxel,ShadowMap,Future" SelectedIndex="{Binding Lighting}" IsEnabled="{Binding NotPotato}" />
+              <StackPanel><TextBlock Classes="h3" Text="Colour" /><TextBlock Classes="sub" Text="Same controls as a photo editor." /></StackPanel>
+              <Button Grid.Column="1" Classes="ghost" Content="Reset" Command="{Binding ResetGradeCommand}" />
             </Grid>
-            <Border Classes="divider" />
-            <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Shadows" /><TextBlock Classes="hint" Text="Legacy" /></StackPanel>
-              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding Shadows}" IsEnabled="{Binding NotPotato}" />
+            <Border Classes="divider" Margin="0,0,0,6" />
+            <Grid Classes="slider-row" ColumnDefinitions="96,*,74">
+              <TextBlock Text="Exposure" />
+              <Slider Grid.Column="1" Minimum="-1.5" Maximum="1.5" Value="{Binding Exposure}" />
+              <TextBlock Grid.Column="2" Classes="val" Text="{Binding ExposureLabel}" />
             </Grid>
-            <Border Classes="divider" />
-            <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Post-processing" /><TextBlock Classes="hint" Text="Legacy · bloom, blur, sun rays, colour correction." /></StackPanel>
-              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding PostProcessing}" IsEnabled="{Binding NotPotato}" />
+            <Grid Classes="slider-row" ColumnDefinitions="96,*,74">
+              <TextBlock Text="Brightness" />
+              <Slider Grid.Column="1" Minimum="-0.3" Maximum="0.3" Value="{Binding Brightness}" />
+              <TextBlock Grid.Column="2" Classes="val" Text="{Binding BrightnessLabel}" />
             </Grid>
-            <Border Classes="divider" />
-            <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Pause voxel lighting" /><TextBlock Classes="hint" Text="Freezes lighting updates. Big FPS win, lights stop moving." /></StackPanel>
-              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding PauseVoxelizer}" IsEnabled="{Binding NotPotato}" />
+            <Grid Classes="slider-row" ColumnDefinitions="96,*,74">
+              <TextBlock Text="Contrast" />
+              <Slider Grid.Column="1" Minimum="0.5" Maximum="1.6" Value="{Binding Contrast}" />
+              <TextBlock Grid.Column="2" Classes="val" Text="{Binding ContrastLabel}" />
+            </Grid>
+            <Grid Classes="slider-row" ColumnDefinitions="96,*,74">
+              <TextBlock Text="Saturation" />
+              <Slider Grid.Column="1" Minimum="0" Maximum="2" Value="{Binding Saturation}" />
+              <TextBlock Grid.Column="2" Classes="val" Text="{Binding SaturationLabel}" />
+            </Grid>
+            <Grid Classes="slider-row" ColumnDefinitions="96,*,74">
+              <TextBlock Text="Temperature" />
+              <Slider Grid.Column="1" Minimum="-1" Maximum="1" Value="{Binding Temperature}" />
+              <TextBlock Grid.Column="2" Classes="val" Text="{Binding TemperatureLabel}" />
+            </Grid>
+            <Grid Classes="slider-row" ColumnDefinitions="96,*,74">
+              <TextBlock Text="Tint" />
+              <Slider Grid.Column="1" Minimum="-1" Maximum="1" Value="{Binding Tint}" />
+              <TextBlock Grid.Column="2" Classes="val" Text="{Binding TintLabel}" />
+            </Grid>
+            <Grid Classes="slider-row" ColumnDefinitions="96,*,74" Margin="0,0,0,8">
+              <TextBlock Text="Fade" />
+              <Slider Grid.Column="1" Minimum="0" Maximum="0.3" Value="{Binding Fade}" />
+              <TextBlock Grid.Column="2" Classes="val" Text="{Binding FadeLabel}" />
             </Grid>
           </StackPanel>
         </Border>
+
         <Border Grid.Column="2" Classes="panel">
           <StackPanel>
-            <TextBlock Classes="h3" Text="Image" />
-            <StackPanel Spacing="7" Margin="0,12,0,10">
-              <Grid ColumnDefinitions="*,Auto">
-                <StackPanel><TextBlock Classes="label" Text="Render quality" /><TextBlock Classes="hint" Text="Overrides Roblox's internal quality level (1–21)." /></StackPanel>
-                <Border Grid.Column="1" Classes="value"><TextBlock Text="{Binding FrmLabel}" /></Border>
-              </Grid>
-              <Slider Minimum="0" Maximum="21" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding FrmQuality}" IsEnabled="{Binding NotPotato}" />
-            </StackPanel>
-            <Border Classes="divider" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel VerticalAlignment="Center"><TextBlock Classes="label" Text="Gray sky" /><TextBlock Classes="hint" Text="Replaces skyboxes with flat gray. Calmer and faster." /></StackPanel>
-              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding GraySky}" />
+              <StackPanel><TextBlock Classes="h3" Text="Live preview" /><TextBlock Classes="sub" Text="Exactly the filter Windows will apply." /></StackPanel>
+              <Button Grid.Column="1" Content="Test on screen" Command="{Binding TestShaderOnScreenCommand}" />
+            </Grid>
+            <Border Classes="divider" Margin="0,0,0,12" />
+            <Border CornerRadius="8" ClipToBounds="True" BorderBrush="#2b2a2d" BorderThickness="1">
+              <Image Source="{Binding Preview}" Stretch="UniformToFill" Height="196" />
+            </Border>
+            <Border Classes="divider" Margin="0,12,0,0" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel><TextBlock Classes="label" Text="Only while Roblox is in front" /><TextBlock Classes="hint" Text="Your desktop and other apps stay normal." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding OnlyWhenRobloxFocused}" />
             </Grid>
           </StackPanel>
         </Border>
       </Grid>
+
+      <Border Classes="panel">
+        <StackPanel>
+          <Grid Classes="row" ColumnDefinitions="Auto,*,Auto">
+            <Border Width="64" Height="40" CornerRadius="6" ClipToBounds="True" Margin="0,0,14,0" VerticalAlignment="Center"
+                    Background="#19191b" BorderBrush="#2b2a2d" BorderThickness="1">
+              <Image Source="{Binding SkyPreview}" Stretch="UniformToFill" />
+            </Border>
+            <StackPanel Grid.Column="1">
+              <TextBlock Classes="h3" Text="Skybox" />
+              <TextBlock Classes="sub" Text="{Binding SkyboxDescription}" />
+            </StackPanel>
+            <ComboBox Grid.Column="2" ItemsSource="{x:Static vm:MainViewModel.SkyboxNames}" SelectedIndex="{Binding SkyboxIndex}" />
+          </Grid>
+          <Border Classes="divider" />
+          <TextBlock Classes="note" Margin="0,12,0,12"
+                     Text="Applied when Roblox starts. Replaces Roblox's default sky; games that set their own sky keep it. Shaders work in windowed and borderless fullscreen (Roblox's default), not in exclusive fullscreen." />
+        </StackPanel>
+      </Border>
     </StackPanel>
   </ScrollViewer>
 </UserControl>

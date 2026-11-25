@@ -3,78 +3,74 @@
              xmlns:vm="using:RoseTrap.ViewModels"
              x:Class="RoseTrap.Views.Pages.PresetPage"
              x:DataType="vm:MainViewModel">
-  <UserControl.Styles>
-    <Style Selector="TextBlock.title">
-      <Setter Property="FontSize" Value="13" />
-      <Setter Property="FontWeight" Value="SemiBold" />
-      <Setter Property="Foreground" Value="#f0e7ea" />
-      <Setter Property="Margin" Value="0,10,0,3" />
-    </Style>
-    <Style Selector="TextBlock.icon">
-      <Setter Property="FontSize" Value="20" />
-    </Style>
-    <Style Selector="Grid.meter">
-      <Setter Property="Margin" Value="0,5,0,0" />
-    </Style>
-    <Style Selector="Grid.meter > TextBlock">
-      <Setter Property="FontSize" Value="10" />
-      <Setter Property="Foreground" Value="#7a7378" />
-    </Style>
-    <Style Selector="Grid.meter ProgressBar">
-      <Setter Property="Height" Value="4" />
-      <Setter Property="MinHeight" Value="4" />
-      <Setter Property="MinWidth" Value="0" />
-      <Setter Property="Maximum" Value="100" />
-      <Setter Property="CornerRadius" Value="2" />
-      <Setter Property="Background" Value="#333034" />
-      <Setter Property="Foreground" Value="{DynamicResource AccentGradientH}" />
-      <Setter Property="VerticalAlignment" Value="Center" />
-    </Style>
-  </UserControl.Styles>
   <ScrollViewer>
-    <StackPanel Margin="24,22,24,30" Spacing="14">
-      <StackPanel>
-        <TextBlock Classes="h2" Text="Presets" />
-        <TextBlock Classes="sub" Text="One click changes the whole setup. Tweaking any option makes it Custom." />
-      </StackPanel>
-      <UniformGrid Columns="4" Margin="-6,0">
-        <RadioButton Classes="preset" Margin="6" GroupName="preset" IsChecked="{Binding IsPotatoPreset}">
+    <StackPanel Classes="page">
+      <Grid Classes="page-head">
+        <StackPanel>
+          <TextBlock Classes="h2" Text="Game presets" />
+          <TextBlock Classes="sub" Text="Fast flag sets tuned for kinds of games. Your own flags in Fast flags always win." />
+        </StackPanel>
+      </Grid>
+
+      <Border Classes="panel">
+        <Grid Classes="row" ColumnDefinitions="*,Auto">
           <StackPanel>
-            <Viewbox Classes="icon"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Potato}" /></Canvas></Viewbox>
-            <TextBlock Classes="title" Text="Potato" />
-            <TextBlock Classes="hint" Text="Everything off. For old laptops." Height="32" />
-            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Performance" /><ProgressBar Grid.Column="1" Value="100" /></Grid>
-            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Visuals" /><ProgressBar Grid.Column="1" Value="12" /></Grid>
+            <TextBlock Classes="h3" Text="Pick automatically by game" />
+            <TextBlock Classes="sub" Text="When you press Play on roblox.com, RoseTrap recognises the game and applies its preset." />
           </StackPanel>
-        </RadioButton>
-        <RadioButton Classes="preset" Margin="6" GroupName="preset" IsChecked="{Binding IsBalancedPreset}">
-          <StackPanel>
-            <Viewbox Classes="icon"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Balanced}" /></Canvas></Viewbox>
-            <TextBlock Classes="title" Text="Balanced" />
-            <TextBlock Classes="hint" Text="Roblox decides. Stable frame rate." Height="32" />
-            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Performance" /><ProgressBar Grid.Column="1" Value="68" /></Grid>
-            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Visuals" /><ProgressBar Grid.Column="1" Value="62" /></Grid>
-          </StackPanel>
-        </RadioButton>
-        <RadioButton Classes="preset" Margin="6" GroupName="preset" IsChecked="{Binding IsQualityPreset}">
-          <StackPanel>
-            <Viewbox Classes="icon"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Quality}" /></Canvas></Viewbox>
-            <TextBlock Classes="title" Text="Quality" />
-            <TextBlock Classes="hint" Text="Max detail, 4× MSAA, high textures." Height="32" />
-            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Performance" /><ProgressBar Grid.Column="1" Value="34" /></Grid>
-            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Visuals" /><ProgressBar Grid.Column="1" Value="96" /></Grid>
-          </StackPanel>
-        </RadioButton>
-        <RadioButton Classes="preset" Margin="6" GroupName="preset" IsChecked="{Binding IsCustomPreset}">
-          <StackPanel>
-            <Viewbox Classes="icon"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Custom}" /></Canvas></Viewbox>
-            <TextBlock Classes="title" Text="Custom" />
-            <TextBlock Classes="hint" Text="Your own options and flags." Height="32" />
-            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Performance" /><ProgressBar Grid.Column="1" Value="50" /></Grid>
-            <Grid Classes="meter" ColumnDefinitions="72,*"><TextBlock Text="Visuals" /><ProgressBar Grid.Column="1" Value="50" /></Grid>
-          </StackPanel>
-        </RadioButton>
-      </UniformGrid>
+          <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding AutoGamePresets}" />
+        </Grid>
+      </Border>
+
+      <ItemsControl ItemsSource="{Binding GamePresetRows}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate><UniformGrid Columns="2" Margin="-7,-7" /></ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:GamePresetRow">
+            <Border Classes="panel" Margin="7" Padding="18,16,18,14">
+              <DockPanel>
+                <Grid DockPanel.Dock="Bottom" ColumnDefinitions="*,Auto" Margin="0,12,0,0">
+                  <StackPanel Orientation="Horizontal" Spacing="9" VerticalAlignment="Center">
+                    <ToggleButton Classes="switch sm" IsChecked="{Binding IsAlways}" />
+                    <TextBlock Classes="hint" Margin="0" Text="Use for other games" VerticalAlignment="Center" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Content="Copy to Fast flags" Command="{Binding CopyToFlagsCommand}" />
+                </Grid>
+                <StackPanel>
+                  <Grid ColumnDefinitions="Auto,*,Auto">
+                    <Border Width="34" Height="34" CornerRadius="8" Background="{DynamicResource AccentSoft}" VerticalAlignment="Top">
+                      <Viewbox Width="18" Height="18">
+                        <Canvas Width="24" Height="24">
+                          <Path Data="{Binding Icon, Converter={x:Static vm:IconConverter.Instance}}" Fill="{DynamicResource AccentBright}" />
+                        </Canvas>
+                      </Viewbox>
+                    </Border>
+                    <StackPanel Grid.Column="1" Margin="12,0,8,0" VerticalAlignment="Center">
+                      <TextBlock Classes="h3" Text="{Binding Name}" Margin="0" />
+                      <TextBlock Classes="hint" Text="{Binding Games}" Foreground="{DynamicResource Accent}" TextTrimming="CharacterEllipsis" TextWrapping="NoWrap" />
+                    </StackPanel>
+                    <Border Grid.Column="2" Classes="chip off" VerticalAlignment="Top"><TextBlock Text="{Binding FlagSummary}" /></Border>
+                  </Grid>
+                  <TextBlock Classes="sub" Margin="0,10,0,10" Text="{Binding Description}" />
+                  <Border Background="{DynamicResource Field}" CornerRadius="8" Padding="10,8" BorderBrush="#2b2a2d" BorderThickness="1">
+                    <ItemsControl ItemsSource="{Binding Flags}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <Grid ColumnDefinitions="*,Auto" Margin="0,1">
+                            <TextBlock Classes="mono" FontSize="10.5" Foreground="#bdb5ba" Text="{Binding Key}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="1" Classes="mono" FontSize="10.5" Foreground="{DynamicResource AccentBright}" Text="{Binding Value}" Margin="8,0,0,0" />
+                          </Grid>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </Border>
+                </StackPanel>
+              </DockPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
     </StackPanel>
   </ScrollViewer>
 </UserControl>

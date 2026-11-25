@@ -46,13 +46,64 @@
     <Setter Property="CornerRadius" Value="{StaticResource PanelRadius}" />
     <Setter Property="Padding" Value="18,16,18,6" />
   </Style>
-  <!-- The thin accent glow along a panel's top edge. -->
   <Style Selector="Grid.row">
-    <Setter Property="MinHeight" Value="48" />
+    <Setter Property="MinHeight" Value="52" />
+  </Style>
+  <Style Selector="Grid.row > StackPanel">
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Margin" Value="0,8,16,8" />
+  </Style>
+  <Style Selector="Grid.row > TextBlock">
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Grid.row > ToggleButton.switch, Grid.row > Button, Grid.row > ComboBox, Grid.row > TextBox">
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+  </Style>
+  <Style Selector="Grid.row > ComboBox">
+    <Setter Property="MinWidth" Value="190" />
+  </Style>
+  <!-- Label | slider | value, Masterstrap-style. -->
+  <Style Selector="Grid.slider-row">
+    <Setter Property="MinHeight" Value="40" />
+  </Style>
+  <Style Selector="Grid.slider-row > TextBlock">
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="FontSize" Value="12.5" />
+    <Setter Property="Foreground" Value="#e6dfe3" />
+  </Style>
+  <Style Selector="Grid.slider-row > TextBlock.val">
+    <Setter Property="HorizontalAlignment" Value="Right" />
+    <Setter Property="Foreground" Value="{DynamicResource Muted}" />
+    <Setter Property="FontFeatures" Value="+tnum" />
+  </Style>
+  <Style Selector="Grid.slider-row > Slider">
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Margin" Value="8,0,16,0" />
+  </Style>
+  <!-- Panel header: title + optional description, always followed by a divider. -->
+  <Style Selector="StackPanel.head">
+    <Setter Property="Margin" Value="0,0,0,12" />
+  </Style>
+  <Style Selector="StackPanel.head > TextBlock.sub">
+    <Setter Property="Margin" Value="0,3,0,0" />
+  </Style>
+  <Style Selector="StackPanel.page">
+    <Setter Property="Margin" Value="24,22,24,30" />
+    <Setter Property="Spacing" Value="14" />
+  </Style>
+  <Style Selector="Grid.page-head">
+    <Setter Property="Margin" Value="0,0,0,4" />
   </Style>
   <Style Selector="Border.divider">
     <Setter Property="Height" Value="1" />
     <Setter Property="Background" Value="{DynamicResource RowLine}" />
+  </Style>
+  <Style Selector="TextBlock.note">
+    <Setter Property="FontSize" Value="11.5" />
+    <Setter Property="FontStyle" Value="Italic" />
+    <Setter Property="Foreground" Value="#8f878c" />
+    <Setter Property="TextWrapping" Value="Wrap" />
   </Style>
   <Style Selector="Border.value">
     <Setter Property="Background" Value="#1f1e21" />
@@ -100,6 +151,13 @@
   <Style Selector="Border.chip > TextBlock">
     <Setter Property="FontSize" Value="10.5" />
     <Setter Property="Foreground" Value="#a9d6b0" />
+  </Style>
+  <Style Selector="Border.chip.off">
+    <Setter Property="Background" Value="#262428" />
+    <Setter Property="BorderBrush" Value="#38353a" />
+  </Style>
+  <Style Selector="Border.chip.off > TextBlock">
+    <Setter Property="Foreground" Value="#a39ba0" />
   </Style>
   <Style Selector="Border.chip.warn">
     <Setter Property="Background" Value="#2e261c" />

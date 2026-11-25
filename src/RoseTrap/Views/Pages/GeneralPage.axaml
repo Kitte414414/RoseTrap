@@ -5,76 +5,70 @@
              x:Class="RoseTrap.Views.Pages.GeneralPage"
              x:DataType="vm:MainViewModel">
   <ScrollViewer>
-    <StackPanel Margin="24,22,24,30" Spacing="14">
-      <Grid ColumnDefinitions="*,Auto">
+    <StackPanel Classes="page">
+      <Grid Classes="page-head" ColumnDefinitions="*,Auto">
         <StackPanel>
           <TextBlock Classes="h2" Text="General" />
           <TextBlock Classes="sub" Text="Frame rate, graphics level and launching." />
         </StackPanel>
-        <Button Grid.Column="1" Classes="primary lg" VerticalAlignment="Bottom" Command="{Binding LaunchCommand}" CommandParameter="{x:Null}"
+        <Button Grid.Column="1" Classes="primary lg" VerticalAlignment="Center" Command="{Binding LaunchCommand}" CommandParameter="{x:Null}"
                 IsEnabled="{Binding !IsLaunching}">
-          <StackPanel Orientation="Horizontal" Spacing="7">
+          <StackPanel Orientation="Horizontal" Spacing="8">
             <Viewbox Width="12" Height="12" VerticalAlignment="Center"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Play}" Fill="{DynamicResource AccentInk}" /></Canvas></Viewbox>
             <TextBlock Text="Launch Roblox" VerticalAlignment="Center" />
           </StackPanel>
         </Button>
       </Grid>
 
-      <Grid ColumnDefinitions="7*,14,5*">
+      <Grid ColumnDefinitions="3*,14,2*">
         <Border Classes="panel">
           <StackPanel>
-            <TextBlock Classes="h3" Text="Frame rate" />
-            <TextBlock Classes="sub" Text="Written to Roblox's own settings, so it works with the fast flag allowlist." />
-            <StackPanel Spacing="7" Margin="0,12,0,10">
-              <Grid ColumnDefinitions="*,Auto">
-                <TextBlock Classes="label" Text="FPS cap" VerticalAlignment="Center" />
-                <Border Grid.Column="1" Classes="value"><TextBlock Text="{Binding FpsLabel}" /></Border>
-              </Grid>
-              <Slider Minimum="0" Maximum="9" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding FpsIndex}" />
-              <c:TickPanel>
-                <TextBlock Classes="tick" Text="30" /><TextBlock Classes="tick" Text="60" /><TextBlock Classes="tick" Text="72" />
-                <TextBlock Classes="tick" Text="90" /><TextBlock Classes="tick" Text="120" /><TextBlock Classes="tick" Text="144" />
-                <TextBlock Classes="tick" Text="165" /><TextBlock Classes="tick" Text="240" /><TextBlock Classes="tick" Text="360" />
-                <TextBlock Classes="tick" Text="∞" />
-              </c:TickPanel>
+            <StackPanel Classes="head">
+              <TextBlock Classes="h3" Text="Frame rate" />
+              <TextBlock Classes="sub" Text="Written to Roblox's own settings, so it works with the fast flag allowlist." />
             </StackPanel>
             <Border Classes="divider" />
-            <StackPanel Spacing="7" Margin="0,12,0,10">
-              <Grid ColumnDefinitions="*,Auto">
-                <StackPanel>
-                  <TextBlock Classes="label" Text="Graphics quality" />
-                  <TextBlock Classes="hint" Text="0 lets Roblox choose automatically." />
-                </StackPanel>
-                <Border Grid.Column="1" Classes="value"><TextBlock Text="{Binding QualityLabel}" /></Border>
-              </Grid>
-              <Slider Minimum="0" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Quality}"
-                      IsEnabled="{Binding NotPotato}" />
-            </StackPanel>
+            <Grid Classes="slider-row" ColumnDefinitions="120,*,74" Margin="0,6,0,0">
+              <TextBlock Text="FPS cap" />
+              <Slider Grid.Column="1" Minimum="0" Maximum="9" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding FpsIndex}" />
+              <TextBlock Grid.Column="2" Classes="val" Text="{Binding FpsLabel}" Foreground="{DynamicResource AccentBright}" />
+            </Grid>
+            <c:TickPanel Margin="128,0,90,8">
+              <TextBlock Classes="tick" Text="30" /><TextBlock Classes="tick" Text="60" /><TextBlock Classes="tick" Text="72" />
+              <TextBlock Classes="tick" Text="90" /><TextBlock Classes="tick" Text="120" /><TextBlock Classes="tick" Text="144" />
+              <TextBlock Classes="tick" Text="165" /><TextBlock Classes="tick" Text="240" /><TextBlock Classes="tick" Text="360" />
+              <TextBlock Classes="tick" Text="∞" />
+            </c:TickPanel>
+            <Border Classes="divider" />
+            <Grid Classes="slider-row" ColumnDefinitions="120,*,74" Margin="0,6,0,6">
+              <TextBlock Text="Graphics quality" />
+              <Slider Grid.Column="1" Minimum="0" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Quality}" IsEnabled="{Binding NotPotato}" />
+              <TextBlock Grid.Column="2" Classes="val" Text="{Binding QualityLabel}" Foreground="{DynamicResource AccentBright}" />
+            </Grid>
           </StackPanel>
         </Border>
 
         <Border Grid.Column="2" Classes="panel">
           <StackPanel>
-            <Grid ColumnDefinitions="*,Auto">
-              <StackPanel>
+            <Grid Classes="row" ColumnDefinitions="*,Auto" MinHeight="0">
+              <StackPanel Margin="0,0,16,12">
                 <TextBlock Classes="h3" Text="Potato mode" />
                 <TextBlock Classes="sub" Text="Maximum FPS on weak hardware." />
               </StackPanel>
-              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding Potato}" VerticalAlignment="Top" />
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding Potato}" VerticalAlignment="Top" Margin="0,2,0,0" />
             </Grid>
-            <StackPanel Spacing="7" Margin="0,14,0,10">
+            <Border Classes="divider" />
+            <StackPanel Spacing="8" Margin="0,12,0,10">
               <StackPanel.Styles>
                 <Style Selector="TextBlock.check">
-                  <Setter Property="FontSize" Value="11.5" />
+                  <Setter Property="FontSize" Value="12" />
                   <Setter Property="Foreground" Value="#a69ea3" />
                 </Style>
               </StackPanel.Styles>
               <TextBlock Classes="check" Text="•  Graphics quality locked to 1" />
-              <TextBlock Classes="check" Text="•  Lowest textures, MSAA off" />
-              <TextBlock Classes="check" Text="•  Grass hidden, lowest mesh detail" />
-              <TextBlock Classes="check" Text="•  Render quality 1, voxelizer paused" />
-              <TextBlock Classes="check" Text="•  Shadows and post-processing off*" />
-              <TextBlock Classes="hint" Text="* Only when the allowlist filter is off; Roblox ignores those flags now." />
+              <TextBlock Classes="check" Text="•  Lowest textures, anti-aliasing off" />
+              <TextBlock Classes="check" Text="•  No grass, lowest mesh detail" />
+              <TextBlock Classes="check" Text="•  Render quality 1, voxel lighting paused" />
             </StackPanel>
           </StackPanel>
         </Border>
@@ -82,18 +76,18 @@
 
       <Border Classes="panel">
         <StackPanel>
-          <Grid ColumnDefinitions="*,Auto">
+          <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12">
             <StackPanel>
               <TextBlock Classes="h3" Text="Session" />
               <TextBlock Classes="sub" Text="{Binding LaunchStatus}" />
             </StackPanel>
             <Border Grid.Column="1" Classes="chip"><TextBlock Text="{Binding InstallSource}" /></Border>
           </Grid>
-          <ProgressBar Classes="launch" Margin="0,10,0,0" Minimum="0" Maximum="1" Value="{Binding LaunchProgress}" IsVisible="{Binding IsLaunching}" />
-          <UniformGrid Columns="4" Margin="-4,10,-4,8">
+          <ProgressBar Classes="launch" Margin="0,0,0,12" Minimum="0" Maximum="1" Value="{Binding LaunchProgress}" IsVisible="{Binding IsLaunching}" />
+          <UniformGrid Columns="4" Margin="-4,0,-4,10">
             <Border Classes="stat" Margin="4"><StackPanel><TextBlock Classes="k" Text="ROBLOX" /><TextBlock Classes="v" Text="{Binding InstalledVersion}" /></StackPanel></Border>
             <Border Classes="stat" Margin="4"><StackPanel><TextBlock Classes="k" Text="FLAGS WRITTEN" /><TextBlock Classes="v" Text="{Binding ActiveFlagCount}" /></StackPanel></Border>
-            <Border Classes="stat" Margin="4"><StackPanel><TextBlock Classes="k" Text="PRESET" /><TextBlock Classes="v" Text="{Binding PresetName}" /></StackPanel></Border>
+            <Border Classes="stat" Margin="4"><StackPanel><TextBlock Classes="k" Text="GRAPHICS PRESET" /><TextBlock Classes="v" Text="{Binding PresetName}" /></StackPanel></Border>
             <Border Classes="stat" Margin="4"><StackPanel><TextBlock Classes="k" Text="FPS CAP" /><TextBlock Classes="v" Text="{Binding FpsLabel}" /></StackPanel></Border>
           </UniformGrid>
         </StackPanel>

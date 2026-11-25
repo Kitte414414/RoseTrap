@@ -104,7 +104,7 @@
               <Button Classes="nav" Tag="Global" Content="Global" />
               <Button Classes="nav" Tag="FFlags" Content="Fast flags" />
               <Button Classes="nav" Tag="FFlags Settings" Content="Flag settings" />
-              <Button Classes="nav" Tag="Preset" Content="Presets" />
+              <Button Classes="nav" Tag="Preset" Content="Game presets" />
               <Button Classes="nav" Tag="Shaders" Content="Shaders" />
             </StackPanel>
           </DockPanel>

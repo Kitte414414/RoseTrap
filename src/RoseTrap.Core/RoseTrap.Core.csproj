@@ -3,6 +3,8 @@
     <RootNamespace>RoseTrap.Core</RootNamespace>
     <IsTrimmable>true</IsTrimmable>
     <IsAotCompatible>true</IsAotCompatible>
+    <!-- Source-generated P/Invoke (LibraryImport) for the Windows colour filter. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="RoseTrap.Core.Tests" />

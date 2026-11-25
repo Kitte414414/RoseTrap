@@ -25,7 +25,7 @@ public partial class MainWindow : Window
 
     static readonly Dictionary<string, string> Titles = new()
     {
-        ["Welcome"] = "", ["FFlags"] = "Fast flags", ["FFlags Settings"] = "Flag settings", ["Preset"] = "Presets",
+        ["Welcome"] = "", ["FFlags"] = "Fast flags", ["FFlags Settings"] = "Flag settings", ["Preset"] = "Game presets",
     };
 
     readonly Dictionary<string, Func<Control>> _factories = new()
@@ -76,6 +76,7 @@ public partial class MainWindow : Window
         if (Vm is not { } vm) return;
         vm.Toast += ShowToast;
         vm.CloseRequested += Close;
+        vm.MinimizeRequested += () => WindowState = WindowState.Minimized;
         vm.AppearanceChanged += ApplyAppearance;
         ApplyAppearance();
     }

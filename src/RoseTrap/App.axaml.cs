@@ -22,7 +22,7 @@ public partial class App : Application
             var vm = new MainViewModel();
             var window = new MainWindow { DataContext = vm };
             desktop.MainWindow = window;
-            desktop.ShutdownRequested += (_, _) => vm.SaveNow();
+            desktop.ShutdownRequested += (_, _) => { vm.SaveNow(); vm.Shader.Shutdown(); };
             vm.RegisterLinks();
 
             // Opened from a "Play" button on the website: go straight to launching.
