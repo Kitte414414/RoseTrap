@@ -113,7 +113,7 @@ public class UiTests : IDisposable
 
         w.Navigate("General");
         var page = w.LoadedPages.Single(p => p.IsVisible);
-        double minOpacity = 1;
+        double minOpacity = page.Opacity; // set synchronously by Navigate, before any frame
         bool captured = false;
         var end = DateTime.UtcNow.AddMilliseconds(600);
         while (DateTime.UtcNow < end)
