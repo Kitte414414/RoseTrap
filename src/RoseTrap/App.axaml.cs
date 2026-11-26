@@ -38,14 +38,11 @@ public partial class App : Application
                 var page = args[pi + 1];
                 int li = Array.IndexOf(args, "--test-loading");
                 long? loadingPlace = li >= 0 && li + 1 < args.Length && long.TryParse(args[li + 1], out var lp) ? lp : null;
-                var window = shell.ShowSettings();
-                window.Opened += (_, _) =>
-                {
-                    window.Navigate(page, instant: true);
-                    if (args.Contains("--expanded")) window.ShowSidebarExpanded();
-                    if (args.Contains("--test-crosshair")) vm.Crosshair.Test(TimeSpan.FromSeconds(30));
-                    if (li >= 0) vm.PreviewLoading(loadingPlace, hold: true);
-                };
+                // Show() has already raised Opened, so the hooks run right after it.
+                var window = shell.ShowSettings(page);
+                if (args.Contains("--expanded")) window.ShowSidebarExpanded();
+                if (args.Contains("--test-crosshair")) vm.Crosshair.Test(TimeSpan.FromSeconds(30));
+                if (li >= 0) vm.PreviewLoading(loadingPlace, hold: true);
             }
             else shell.ShowStart();
         }
