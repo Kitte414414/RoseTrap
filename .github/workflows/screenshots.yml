@@ -57,7 +57,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release download v0.4.0 -R ${{ github.repository }} -p "RoseTrap-v0.4.0-win-x64.exe" -D old
-          function Measure($exe, $label, $argv) {
+          function Get-AppMemory($exe, $label, $argv) {
             $p = if ($argv) { Start-Process $exe -ArgumentList $argv -PassThru } else { Start-Process $exe -PassThru }
             Start-Sleep -Seconds 12
             $p.Refresh()
@@ -68,10 +68,10 @@ jobs:
             Start-Sleep -Seconds 1
           }
           foreach ($round in 1..2) {
-            Measure old\RoseTrap-v0.4.0-win-x64.exe "v0.4.0 opened (settings window)" $null
-            Measure publish\RoseTrap.exe "new opened (start panel)" $null
-            Measure old\RoseTrap-v0.4.0-win-x64.exe "v0.4.0 settings on Mods" @("--page", "Mods")
-            Measure publish\RoseTrap.exe "new settings on Mods" @("--page", "Mods")
+            Get-AppMemory old\RoseTrap-v0.4.0-win-x64.exe "v0.4.0 opened (settings window)" $null
+            Get-AppMemory publish\RoseTrap.exe "new opened (start panel)" $null
+            Get-AppMemory old\RoseTrap-v0.4.0-win-x64.exe "v0.4.0 settings on Mods" @("--page", "Mods")
+            Get-AppMemory publish\RoseTrap.exe "new settings on Mods" @("--page", "Mods")
           }
           Get-Item publish\RoseTrap.exe, old\RoseTrap-v0.4.0-win-x64.exe | ForEach-Object { "{0} {1:N1} MB" -f $_.Name, ($_.Length / 1MB) } | Tee-Object -Append shots\memory.txt
       - uses: actions/upload-artifact@v4
