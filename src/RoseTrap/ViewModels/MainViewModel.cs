@@ -53,10 +53,6 @@ public sealed partial class MainViewModel : ObservableObject
     readonly Timer _saveTimer;
 
     public event Action<string>? Toast;
-    public event Action? CloseRequested;
-    /// <summary>RoseTrap has to stay running (shaders, multi-instance) but should get out of the way.</summary>
-    public event Action? MinimizeRequested;
-    readonly Avalonia.Threading.DispatcherTimer _robloxWatch;
     public event Action? AppearanceChanged;
 
     public MainViewModel() : this(AppPaths.Default, null) { }
@@ -74,14 +70,7 @@ public sealed partial class MainViewModel : ObservableObject
         foreach (var f in _s.CustomFlags) Flags.Add(new FlagRow(f, FlagsChanged));
         RefreshFilter();
         _installed = _installer.FindLocal();
-        InitShaders();
         InitMods();
-        _robloxWatch = new Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
-        _robloxWatch.Tick += (_, _) =>
-        {
-            // Stayed open after launching only for shaders: leave once the game is closed.
-            if (!RoseTrap.Services.ShaderService.RobloxRunning()) { _robloxWatch.Stop(); CloseRequested?.Invoke(); }
-        };
     }
 
     public AppSettings Settings => _s;
@@ -160,18 +149,38 @@ public sealed partial class MainViewModel : ObservableObject
         OnPropertyChanged(nameof(FlagSummary));
     }
 
+    /// <summary>
+    /// Raised by the Launch button. The app shell handles it: it closes the settings window, shows the
+    /// loading panel and calls <see cref="RunLaunchAsync"/>. Without a shell (tests) the launch runs directly.
+    /// </summary>
+    public event Action<string?>? LaunchRequested;
+
     [RelayCommand]
     public async Task LaunchAsync(string? link = null)
     {
-        if (IsLaunching) return;
+        if (LaunchRequested is { } shell) { shell(link); return; }
+        await RunLaunchAsync(link, null);
+    }
+
+    /// <summary>Test hook replacing the real install-and-start step.</summary>
+    internal Func<string?, IProgress<InstallProgress>, Task<LaunchResult>>? StartRoblox { get; set; }
+
+    /// <summary>RoseTrap draws the crosshair or holds the multi-instance lock, so it must outlive the launch.</summary>
+    public bool MustStayRunning => _launcher.HoldsMultiInstanceLock || (Ch.Enabled && CrosshairService.IsSupported);
+
+    /// <summary>Installs, applies settings and starts Roblox, then follows the join until the game has loaded.</summary>
+    /// <returns>Null on success, otherwise the error to show.</returns>
+    public async Task<string?> RunLaunchAsync(string? link, LoadingSession? loading)
+    {
+        if (IsLaunching) return null;
         IsLaunching = true;
         // Pending gameplay edits are written by the launcher; flush any still waiting on the debounce first.
         if (_gpSave?.IsEnabled == true) SaveGameplay();
-        var loading = BeginLoading(link);
+        if (loading?.PlaceId is { } placeId) _ = ShowGameAsync(loading, placeId);
         try
         {
             var progress = new Progress<InstallProgress>(p => { LaunchStatus = p.Stage; LaunchProgress = p.Fraction; loading?.Report(p); });
-            var r = await _launcher.LaunchAsync(_s, link, progress, CancellationToken.None);
+            var r = await (StartRoblox?.Invoke(link, progress) ?? _launcher.LaunchAsync(_s, link, progress, CancellationToken.None));
             _installed = r.Install;
             OnPropertyChanged(nameof(InstalledVersion));
             OnPropertyChanged(nameof(InstallSource));
@@ -180,24 +189,21 @@ public sealed partial class MainViewModel : ObservableObject
             LaunchStatus = "Roblox started";
             foreach (var w in r.Warnings) Toast?.Invoke(w);
             if (r.GamePreset != null) Toast?.Invoke($"Game preset: {r.GamePreset}");
-            Toast?.Invoke(r.BasicSettingsWritten || r.Warnings.Count > 0 ? "Roblox started" : "Roblox started · FPS cap applies after its first run");
-            if (loading != null) await FollowLoadingAsync(loading, r);
-            if (_s.Launcher.CloseAfterLaunch)
+            if (loading != null)
             {
-                if (_launcher.HoldsMultiInstanceLock) MinimizeRequested?.Invoke();
-                // Shaders and the crosshair are drawn by RoseTrap, so it has to keep running while you play.
-                else if ((Sh.Enabled && ShaderService.IsSupported) || (Ch.Enabled && CrosshairService.IsSupported)) { MinimizeRequested?.Invoke(); _robloxWatch.Start(); }
-                else CloseRequested?.Invoke();
+                loading.Note = r.Warnings.FirstOrDefault() ?? (r.GamePreset is { } gp ? $"Game preset: {gp}" : null);
+                await FollowLoadingAsync(loading, r);
             }
+            return null;
         }
         catch (Exception e)
         {
             LaunchStatus = "Launch failed";
             Toast?.Invoke(e.Message);
+            return e.Message;
         }
         finally
         {
-            loading?.Finish();
             IsLaunching = false;
         }
     }
@@ -443,7 +449,6 @@ public sealed partial class MainViewModel : ObservableObject
         set { _s.Launcher.InterceptLinks = value; Changed(); RegisterLinks(); }
     }
     public bool MultiInstance { get => _s.Launcher.MultiInstance; set { _s.Launcher.MultiInstance = value; Changed(); } }
-    public bool CloseAfterLaunch { get => _s.Launcher.CloseAfterLaunch; set { _s.Launcher.CloseAfterLaunch = value; Changed(); } }
     public string Channel
     {
         get => _s.Launcher.Channel;

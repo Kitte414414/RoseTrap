@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using Avalonia.VisualTree;
 using RoseTrap.Controls;
 using RoseTrap.Core;
+using RoseTrap.Services;
 using RoseTrap.ViewModels;
 using RoseTrap.Views;
 
@@ -72,7 +73,7 @@ public class UiTests : IDisposable
     public void EveryPageRenders()
     {
         var (w, _) = Open();
-        foreach (var page in new[] { "Welcome", "General", "Gameplay", "Global", "FFlags", "FFlags Settings", "Preset", "Shaders", "Mods", "Settings", "Appearance" })
+        foreach (var page in new[] { "Welcome", "General", "Gameplay", "Global", "FFlags", "FFlags Settings", "Preset", "Mods", "Settings", "Appearance" })
         {
             w.Navigate(page);
             Wait(700);
@@ -135,7 +136,7 @@ public class UiTests : IDisposable
     public void RapidTabSwitchingLeavesOneCleanPage()
     {
         var (w, _) = Open(animations: true);
-        string[] order = ["General", "Global", "FFlags", "General", "Shaders", "Preset", "Global", "Settings"];
+        string[] order = ["General", "Global", "FFlags", "General", "Mods", "Preset", "Global", "Settings"];
         foreach (var name in order)
         {
             w.Navigate(name);
@@ -254,29 +255,140 @@ public class UiTests : IDisposable
         win.Show();
         Pump();
         Assert.Equal(0, s.Progress);
-        Assert.True(s.Steps[0].IsActive);
+        Assert.Equal("Loading", s.Heading);
 
-        s.Report(new("Downloading Roblox", .5));
+        s.Report(new("Downloading Roblox", .4));
+        Assert.Equal("Downloading Roblox", s.Detail);
+        Wait(800);
+        Snap(win, "LoadingScreen");
+        // Creeping between events never reaches the next stage.
+        for (int i = 0; i < 2000; i++) s.Creep();
+        Assert.InRange(s.Progress, .3, .35);
+
         s.Report(new("Starting Roblox", 1));
         s.Started();
         s.OnJoin(new Core.Roblox.JoinEvent(Core.Roblox.JoinStage.Joining, 606849621));
         s.ShowGame(new Core.Roblox.GameInfo(606849621, 245662005, "Jailbreak", "Badimo", 0, null, null));
-        Wait(600);
-        Assert.True(s.Steps[2].IsActive);
-        Assert.True(s.Steps[1].IsDone);
         Assert.InRange(s.Progress, .55, .65);
-        Snap(win, "LoadingScreen");
+        Assert.Equal("Joining server", s.Detail);
+        Assert.Equal("Jailbreak · by Badimo", s.Game);
+        Wait(800);
+        Assert.Equal($"{Math.Round(s.Progress * 100)}%", win.FindControl<TextBlock>("PercentText")!.Text);
+        Snap(win, "LoadingScreenJoining");
 
         s.OnJoin(new Core.Roblox.JoinEvent(Core.Roblox.JoinStage.Connected));
         s.OnJoin(new Core.Roblox.JoinEvent(Core.Roblox.JoinStage.Loaded));
         Assert.True(s.IsDone);
         Assert.Equal(1, s.Progress, 3);
-        Wait(700);
-        Assert.False(win.IsVisible); // faded and closed
+        Wait(1400);
+        Assert.False(win.IsVisible); // shown full, faded, closed
     }
 
     [AvaloniaFact]
-    public void PreviewDoesNotMinimiseAndAppLaunchFinishesOnStart()
+    public void LoadingScreenShowsFailure()
+    {
+        var s = new LoadingSession(joinsGame: false, placeId: null);
+        var win = new LoadingWindow { DataContext = s };
+        win.Show();
+        s.Fail("Couldn't reach setup.rbxcdn.com");
+        Wait(500);
+        Assert.True(win.FindControl<Button>("RetryButton")!.IsEffectivelyVisible);
+        Snap(win, "LoadingScreenFailed");
+        Assert.True(win.IsVisible);
+    }
+
+    [AvaloniaFact]
+    public void AppLaunchFinishesOnStart()
+    {
+        var app = new LoadingSession(joinsGame: false, placeId: null);
+        app.Started();
+        Assert.True(app.IsDone);
+        Assert.Equal(1, app.Progress, 3);
+    }
+
+    [AvaloniaFact]
+    public void StartPanelRendersAndAnimatesHover()
+    {
+        var w = new StartWindow();
+        bool play = false, settings = false;
+        w.PlayRequested += () => play = true;
+        w.SettingsRequested += () => settings = true;
+        w.Show();
+        Wait(600);
+        Assert.Equal(1, w.FindControl<Border>("Card")!.Opacity, 2);
+        Snap(w, "StartPanel");
+
+        var playButton = w.FindControl<Button>("PlayButton")!;
+        var bg = playButton.GetVisualDescendants().OfType<Border>().First(b => b.Name == "bg");
+        var rest = ((ISolidColorBrush)bg.Background!).Color;
+        var centre = playButton.TranslatePoint(new Point(playButton.Bounds.Width / 2, playButton.Bounds.Height / 2), w)!.Value;
+        w.MouseMove(centre);
+        Pump(2);
+        var mid = ((ISolidColorBrush)bg.Background!).Color;
+        Wait(500);
+        var hovered = ((ISolidColorBrush)bg.Background!).Color;
+        Assert.NotEqual(rest, hovered);
+        Assert.NotEqual(hovered, mid); // it faded rather than jumping
+        Snap(w, "StartPanelHover");
+
+        w.MouseDown(centre, MouseButton.Left);
+        w.MouseUp(centre, MouseButton.Left);
+        Assert.True(play);
+        w.FindControl<Button>("SettingsButton")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        Assert.True(settings);
+    }
+
+    [AvaloniaFact]
+    public async Task LaunchingClosesEveryWindowThenExits()
+    {
+        var vm = new MainViewModel(new AppPaths(_root), new Core.Settings.AppSettings());
+        bool exited = false;
+        var shell = new AppShell(vm, () => exited = true, _ => { });
+        shell.ShowStart();
+        shell.ShowSettings();
+        Pump();
+        Assert.Null(shell.OpenStart);
+        Assert.NotNull(shell.OpenSettings);
+
+        var started = new TaskCompletionSource<Core.Roblox.LaunchResult>();
+        vm.StartRoblox = (_, _) => started.Task;
+        await vm.LaunchCommand.ExecuteAsync(null); // the settings window's Launch button
+        Pump();
+        Assert.Null(shell.OpenSettings); // closed outright, not minimised
+        Assert.NotNull(shell.OpenLoading);
+        Assert.False(exited);
+
+        started.SetResult(new Core.Roblox.LaunchResult(new Core.Roblox.RobloxInstall("version-x", _root, false), null, [], false)
+        { LaunchedAt = DateTime.UtcNow });
+        Wait(2200);
+        Assert.Null(shell.OpenLoading);
+        Assert.True(exited);
+    }
+
+    [AvaloniaFact]
+    public async Task FailedLaunchKeepsThePanelWithTheReason()
+    {
+        var vm = new MainViewModel(new AppPaths(_root), new Core.Settings.AppSettings());
+        bool exited = false;
+        var shell = new AppShell(vm, () => exited = true, _ => { });
+        shell.ShowStart();
+        vm.StartRoblox = (_, _) => Task.FromException<Core.Roblox.LaunchResult>(new HttpRequestException("No internet"));
+        await shell.LaunchAsync(null);
+        Pump();
+        var loading = shell.OpenLoading!;
+        Assert.True(loading.Session!.Failed);
+        Assert.Equal("No internet", loading.Session.Detail);
+        Assert.False(exited);
+        loading.FindControl<Button>("SettingsButton")!.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        Pump();
+        Assert.NotNull(shell.OpenSettings);
+        Assert.Null(shell.OpenLoading);
+        shell.OpenSettings!.Close();
+        Assert.True(exited);
+    }
+
+    [AvaloniaFact]
+    public void PreviewKeepsSettingsOpen()
     {
         var (w, vm) = Open();
         LoadingSession? shown = null;
@@ -285,14 +397,9 @@ public class UiTests : IDisposable
         Pump();
         Assert.Same(s, shown);
         Assert.True(s.IsPreview);
+        Assert.True(w.IsVisible);
         Assert.Equal(WindowState.Normal, w.WindowState);
         s.Finish();
-
-        var app = new LoadingSession(joinsGame: false, placeId: null);
-        Assert.Equal(2, app.Steps.Count);
-        app.Started();
-        Assert.True(app.IsDone);
-        Assert.Equal(1, app.Progress, 3);
     }
 
     [AvaloniaFact]

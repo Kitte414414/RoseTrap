@@ -1,0 +1,135 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:RoseTrap.Controls"
+        x:Class="RoseTrap.Views.StartWindow"
+        Title="RoseTrap"
+        Icon="/Assets/rosetrap.ico"
+        Width="468" Height="212" CanResize="False"
+        SystemDecorations="None" Background="Transparent" TransparencyLevelHint="Transparent"
+        WindowStartupLocation="CenterScreen">
+  <Window.Styles>
+    <!-- Panel buttons: every colour change is animated (background, text and border fade together). -->
+    <Style Selector="Button.start">
+      <Setter Property="Height" Value="46" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="Background" Value="#29282b" />
+      <Setter Property="BorderBrush" Value="#333135" />
+      <Setter Property="Foreground" Value="#ece5e8" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="bg" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="1" CornerRadius="10" RenderTransformOrigin="50%,50%">
+            <Border.Transitions>
+              <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.28" Easing="{StaticResource EaseOut}" />
+                <BrushTransition Property="BorderBrush" Duration="0:0:0.28" Easing="{StaticResource EaseOut}" />
+                <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.28" Easing="{StaticResource EaseOut}" />
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.12" />
+              </Transitions>
+            </Border.Transitions>
+            <ContentPresenter Name="label" Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}"
+                              HorizontalAlignment="Center" VerticalAlignment="Center">
+              <ContentPresenter.Transitions>
+                <Transitions><BrushTransition Property="Foreground" Duration="0:0:0.28" Easing="{StaticResource EaseOut}" /></Transitions>
+              </ContentPresenter.Transitions>
+            </ContentPresenter>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="Button.start:pointerover /template/ Border#bg">
+      <Setter Property="Background" Value="#332e31" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentLine}" />
+    </Style>
+    <Style Selector="Button.start:pointerover /template/ ContentPresenter#label">
+      <Setter Property="Foreground" Value="{DynamicResource AccentBright}" />
+    </Style>
+    <Style Selector="Button.start.play:pointerover /template/ Border#bg">
+      <Setter Property="Background" Value="{DynamicResource Accent}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentBright}" />
+      <Setter Property="BoxShadow" Value="0 6 22 0 #55d99aa9" />
+    </Style>
+    <Style Selector="Button.start.play:pointerover /template/ ContentPresenter#label">
+      <Setter Property="Foreground" Value="{DynamicResource AccentInk}" />
+    </Style>
+    <Style Selector="Button.start:pressed /template/ Border#bg">
+      <Setter Property="RenderTransform" Value="scale(0.97)" />
+    </Style>
+
+    <Style Selector="Button#CloseButton">
+      <Setter Property="Width" Value="26" />
+      <Setter Property="Height" Value="26" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="bg" Background="Transparent" CornerRadius="7">
+            <Border.Transitions>
+              <Transitions><BrushTransition Property="Background" Duration="0:0:0.2" /></Transitions>
+            </Border.Transitions>
+            <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+    <Style Selector="Button#CloseButton:pointerover /template/ Border#bg">
+      <Setter Property="Background" Value="#2e2a2d" />
+    </Style>
+    <Style Selector="Button#CloseButton Path">
+      <Setter Property="Fill" Value="#6f686c" />
+      <Setter Property="Transitions">
+        <Transitions><BrushTransition Property="Fill" Duration="0:0:0.2" /></Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Button#CloseButton:pointerover Path">
+      <Setter Property="Fill" Value="{DynamicResource AccentBright}" />
+    </Style>
+  </Window.Styles>
+
+  <!-- 10px margin leaves room for the drop shadow on the transparent window. -->
+  <Border Name="Card" Margin="10" CornerRadius="16" Background="#1e1e20" BorderBrush="#2e2c30" BorderThickness="1"
+          BoxShadow="0 10 30 0 #70000000" Opacity="0" RenderTransform="translateY(6px)">
+    <Border.Transitions>
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.35" Easing="{StaticResource EaseOut}" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.45" Easing="{StaticResource EaseOut}" />
+      </Transitions>
+    </Border.Transitions>
+    <Grid ColumnDefinitions="Auto,Auto,*">
+      <!-- Rose tile; its rim takes the accent colour while Play is hovered. -->
+      <Border Name="RoseTile" Width="164" Height="164" Margin="14" CornerRadius="13" Background="#121213"
+              BorderBrush="#232225" BorderThickness="1" ClipToBounds="True">
+        <Border.Transitions>
+          <Transitions>
+            <BrushTransition Property="BorderBrush" Duration="0:0:0.35" Easing="{StaticResource EaseOut}" />
+            <BoxShadowsTransition Property="BoxShadow" Duration="0:0:0.35" Easing="{StaticResource EaseOut}" />
+          </Transitions>
+        </Border.Transitions>
+        <Panel>
+          <Ellipse Width="150" Height="130" Opacity="0.85" IsHitTestVisible="False">
+            <Ellipse.Fill>
+              <RadialGradientBrush>
+                <GradientStop Offset="0" Color="#26a64f68" />
+                <GradientStop Offset="1" Color="#00000000" />
+              </RadialGradientBrush>
+            </Ellipse.Fill>
+          </Ellipse>
+          <c:LogoRose Name="Rose" Margin="10" />
+        </Panel>
+      </Border>
+      <Border Grid.Column="1" Width="1" Background="#2a292c" Margin="0,0,0,0" />
+
+      <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="26,0,26,0" Spacing="9">
+        <Button Name="PlayButton" Classes="start play" Content="Play" />
+        <Button Name="SettingsButton" Classes="start" Content="Settings" />
+      </StackPanel>
+      <Button Grid.Column="2" Name="CloseButton" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0"
+              ToolTip.Tip="Close">
+        <Viewbox Width="9" Height="9"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Close}" /></Canvas></Viewbox>
+      </Button>
+    </Grid>
+  </Border>
+</Window>

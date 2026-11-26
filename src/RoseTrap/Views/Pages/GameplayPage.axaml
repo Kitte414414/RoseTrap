@@ -94,7 +94,7 @@
           <StackPanel Margin="0,0,16,0">
             <TextBlock Classes="h3" Text="Loading screen" />
             <TextBlock Classes="sub" TextWrapping="Wrap"
-                       Text="RoseTrap's own loading screen with the game's picture, following Roblox's log: preparing, starting, joining the server, loading. It closes once the game has loaded." />
+                       Text="RoseTrap's loading panel while Roblox starts, following Roblox's log: preparing, starting, joining the server, loading. It closes once the game has loaded." />
           </StackPanel>
           <Button Grid.Column="1" Name="PreviewLoadingButton" Classes="ghost" Content="Preview" VerticalAlignment="Center" Margin="0,0,14,0" />
           <ToggleButton Grid.Column="2" Classes="switch" IsChecked="{Binding CustomLoadingScreen}" VerticalAlignment="Center" />

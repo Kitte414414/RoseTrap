@@ -16,7 +16,6 @@ public partial class WelcomePage : UserControl
 public partial class GeneralPage : UserControl { public GeneralPage() => InitializeComponent(); }
 public partial class GlobalPage : UserControl { public GlobalPage() => InitializeComponent(); }
 public partial class PresetPage : UserControl { public PresetPage() => InitializeComponent(); }
-public partial class ShadersPage : UserControl { public ShadersPage() => InitializeComponent(); }
 
 public partial class GameplayPage : UserControl
 {

@@ -15,7 +15,10 @@ public sealed class LogoRose : Control
     const double SwayAmplitude = .42; // radians either side while idle
     const double SwayPeriodMs = 9000;
 
-    readonly ImmutableSolidColorBrush[] _base, _lit;
+    // Dash colours, with depth dimming folded into the brush alpha: one plain fill per dash and no
+    // opacity layer, so a frame costs a few hundred rectangles and nothing else.
+    static readonly Dictionary<uint, ImmutableSolidColorBrush> Brushes = new();
+    readonly Color[] _base, _lit;
     double _angle, _velocity, _phase;
     TimeSpan? _last;
     bool _attached, _active = true, _running, _dragging;
@@ -26,15 +29,15 @@ public sealed class LogoRose : Control
     {
         Cursor = new Cursor(StandardCursorType.Hand);
         int n = LogoRoseData.Colors.Length;
-        _base = new ImmutableSolidColorBrush[n];
-        _lit = new ImmutableSolidColorBrush[n];
+        _base = new Color[n];
+        _lit = new Color[n];
         for (int i = 0; i < n; i++)
         {
             var c = Color.FromUInt32(LogoRoseData.Colors[i]);
-            _base[i] = new ImmutableSolidColorBrush(c);
+            _base[i] = c;
             // Highlight: same hue pushed toward the logo's lightest pink.
-            _lit[i] = new ImmutableSolidColorBrush(Color.FromArgb(255,
-                (byte)(c.R + (255 - c.R) * .45), (byte)(c.G + (215 - c.G) * .35), (byte)(c.B + (226 - c.B) * .35)));
+            _lit[i] = Color.FromArgb(255,
+                (byte)(c.R + (255 - c.R) * .45), (byte)(c.G + (215 - c.G) * .35), (byte)(c.B + (226 - c.B) * .35));
         }
     }
 
@@ -77,12 +80,11 @@ public sealed class LogoRose : Control
     void Tick(TimeSpan now)
     {
         if (!_running) return;
-        if (_last is null || (now - _last.Value).TotalMilliseconds >= 16)
-        {
-            Advance(_last is null ? 0 : Math.Min(64, (now - _last.Value).TotalMilliseconds));
-            _last = now;
-            InvalidateVisual();
-        }
+        // Every display frame, with the real elapsed time: a fixed 16 ms gate dropped every other
+        // frame on 120/144 Hz screens and made the turn stutter.
+        Advance(_last is null ? 0 : Math.Min(64, (now - _last.Value).TotalMilliseconds));
+        _last = now;
+        InvalidateVisual();
         TopLevel.GetTopLevel(this)?.RequestAnimationFrame(Tick);
     }
 
@@ -160,9 +162,17 @@ public sealed class LogoRose : Control
             // Diagonal light band sweeping across the dashes.
             double u = (d[k] + d[k + 1] * .6) / LogoRoseData.Size;
             double lit = Math.Exp(-Math.Pow((u - sweep) / .09, 2));
-            var brush = lit > .35 ? _lit[i] : _base[i];
-            using (ctx.PushOpacity(Math.Clamp((.85 - .25 * Math.Max(0, depth)) * (back ? .8 : 1), .3, 1)))
-                ctx.DrawRectangle(brush, null, new RoundedRect(rect, r * scale * persp));
+            var c = lit > .35 ? _lit[i] : _base[i];
+            // 16 dimming steps are indistinguishable from continuous and keep the brush cache tiny.
+            double op = Math.Round(Math.Clamp((.85 - .25 * Math.Max(0, depth)) * (back ? .8 : 1), .3, 1) * 16) / 16;
+            ctx.DrawRectangle(Brush(Color.FromArgb((byte)(c.A * op), c.R, c.G, c.B)), null, new RoundedRect(rect, r * scale * persp));
         }
+    }
+
+    static ImmutableSolidColorBrush Brush(Color c)
+    {
+        uint key = c.ToUInt32();
+        if (!Brushes.TryGetValue(key, out var b)) Brushes[key] = b = new ImmutableSolidColorBrush(c);
+        return b;
     }
 }

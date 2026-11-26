@@ -28,16 +28,17 @@ jobs:
           $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
           Write-Host "screen $($b.Width)x$($b.Height)"
           New-Item -ItemType Directory shots | Out-Null
-          $pages = @("Welcome","General","Gameplay","Global","FFlags","FFlags Settings","Preset","Shaders","Mods","Settings","Appearance")
+          # "Start" is a plain launch: the Play / Settings panel.
+          $pages = @("Start","Welcome","General","Gameplay","Global","FFlags","FFlags Settings","Preset","Mods","Settings","Appearance")
           foreach ($p in $pages) {
             foreach ($mode in @("", "--expanded", "--test-crosshair", "--test-loading")) {
               if ($mode -eq "--expanded" -and $p -ne "Global") { continue }
               if ($mode -eq "--test-crosshair" -and $p -ne "Mods") { continue }
               if ($mode -eq "--test-loading" -and $p -ne "Gameplay") { continue }
-              $args = @("--page", "`"$p`"")
+              $args = if ($p -eq "Start") { @() } else { @("--page", "`"$p`"") }
               if ($mode) { $args += $mode }
               if ($mode -eq "--test-loading") { $args += "606849621" }
-              $proc = Start-Process publish\RoseTrap.exe -ArgumentList $args -PassThru
+              $proc = if ($args.Count) { Start-Process publish\RoseTrap.exe -ArgumentList $args -PassThru } else { Start-Process publish\RoseTrap.exe -PassThru }
               Start-Sleep -Seconds $(if ($mode -eq "--test-loading") { 10 } else { 6 })
               $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
               $g = [System.Drawing.Graphics]::FromImage($bmp)
@@ -50,6 +51,29 @@ jobs:
             }
           }
           Get-ChildItem shots
+      - name: Memory (compared with v0.4.0)
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download v0.4.0 -R ${{ github.repository }} -p "RoseTrap-v0.4.0-win-x64.exe" -D old
+          function Measure($exe, $label, $argv) {
+            $p = if ($argv) { Start-Process $exe -ArgumentList $argv -PassThru } else { Start-Process $exe -PassThru }
+            Start-Sleep -Seconds 12
+            $p.Refresh()
+            $line = "{0,-36} working set {1,6} MB   private {2,6} MB" -f $label, [math]::Round($p.WorkingSet64 / 1MB, 1), [math]::Round($p.PrivateMemorySize64 / 1MB, 1)
+            Write-Host $line
+            Add-Content shots\memory.txt $line
+            Stop-Process -Id $p.Id -Force
+            Start-Sleep -Seconds 1
+          }
+          foreach ($round in 1..2) {
+            Measure old\RoseTrap-v0.4.0-win-x64.exe "v0.4.0 opened (settings window)" $null
+            Measure publish\RoseTrap.exe "new opened (start panel)" $null
+            Measure old\RoseTrap-v0.4.0-win-x64.exe "v0.4.0 settings on Mods" @("--page", "Mods")
+            Measure publish\RoseTrap.exe "new settings on Mods" @("--page", "Mods")
+          }
+          Get-Item publish\RoseTrap.exe, old\RoseTrap-v0.4.0-win-x64.exe | ForEach-Object { "{0} {1:N1} MB" -f $_.Name, ($_.Length / 1MB) } | Tee-Object -Append shots\memory.txt
       - uses: actions/upload-artifact@v4
         with:
           name: screenshots

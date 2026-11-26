@@ -19,7 +19,6 @@ internal static class Icons
         r["Icon.FFlags"] = P(IconData.FFlags);
         r["Icon.FFlagsSettings"] = Knockout(P(IconData.Square), P(IconData.Gear), scale: .58);
         r["Icon.Preset"] = P(IconData.Preset);
-        r["Icon.Shaders"] = P(IconData.Shaders);
         r["Icon.Settings"] = Fit(P(IconData.Tools), IconData.ToolsWidth, IconData.ToolsHeight, inset: 2.5);
         r["Icon.Appearance"] = P(IconData.Appearance);
         r["Icon.Mods"] = P(IconData.Mods);

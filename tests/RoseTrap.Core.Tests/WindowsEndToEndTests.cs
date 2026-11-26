@@ -34,7 +34,7 @@ public class WindowsEndToEndTests(ITestOutputHelper log)
 
         var sw = Stopwatch.StartNew();
         var progress = new Progress<InstallProgress>(p => log.WriteLine($"{sw.Elapsed:mm\\:ss} {p.Stage} {p.Fraction:P0}"));
-        var settings = new AppSettings { Graphics = { FpsCap = 240, Potato = true }, Launcher = { CloseAfterLaunch = false } };
+        var settings = new AppSettings { Graphics = { FpsCap = 240, Potato = true }, };
 
         var result = await new Launcher(installer, paths).LaunchAsync(settings, null, progress, CancellationToken.None);
         log.WriteLine($"installed {result.Install.Version} in {sw.Elapsed}, warnings: {string.Join(" | ", result.Warnings)}");

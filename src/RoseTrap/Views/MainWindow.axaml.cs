@@ -37,7 +37,6 @@ public partial class MainWindow : Window
         ["FFlags"] = () => new FlagsPage(),
         ["FFlags Settings"] = () => new FlagSettingsPage(),
         ["Preset"] = () => new PresetPage(),
-        ["Shaders"] = () => new ShadersPage(),
         ["Mods"] = () => new ModsPage(),
         ["Settings"] = () => new SettingsPage(),
         ["Appearance"] = () => new AppearancePage(),
@@ -77,17 +76,26 @@ public partial class MainWindow : Window
         base.OnDataContextChanged(e);
         if (Vm is not { } vm) return;
         vm.Toast += ShowToast;
-        vm.CloseRequested += Close;
-        vm.MinimizeRequested += () => WindowState = WindowState.Minimized;
         vm.AppearanceChanged += ApplyAppearance;
-        vm.LoadingStarted += session =>
-        {
-            new LoadingWindow { DataContext = session }.Show();
-            // The loading screen takes over; the settings window comes back if RoseTrap stays open.
-            if (!session.IsPreview && vm.CloseAfterLaunch) WindowState = WindowState.Minimized;
-        };
+        vm.LoadingStarted += ShowLoadingPreview;
         ApplyAppearance();
     }
+
+    // The view model outlives this window (it's reopened from the start panel), so let go of it on close
+    // or every closed window would stay in memory through these handlers.
+    protected override void OnClosed(EventArgs e)
+    {
+        if (Vm is { } vm)
+        {
+            vm.Toast -= ShowToast;
+            vm.AppearanceChanged -= ApplyAppearance;
+            vm.LoadingStarted -= ShowLoadingPreview;
+        }
+        _expandDelay.Stop();
+        base.OnClosed(e);
+    }
+
+    static void ShowLoadingPreview(LoadingSession session) => new LoadingWindow { DataContext = session }.Show();
 
     public string CurrentPage => _current;
     internal IEnumerable<Control> LoadedPages => _pages.Values;
@@ -148,12 +156,14 @@ public partial class MainWindow : Window
         PageHost.Margin = new Thickness(pinned ? Expanded : Collapsed, 0, 0, 0);
         SetSidebar(pinned);
 
-        var (_, a, b) = Accents[Math.Clamp(vm.AccentIndex, 0, Accents.Length - 1)];
-        SetAccent(Color.Parse(a), Color.Parse(b));
+        ApplyAccent(vm.AccentIndex);
     }
 
-    static void SetAccent(Color a, Color b)
+    /// <summary>Sets the accent brushes app-wide, so the start and loading panels match too.</summary>
+    internal static void ApplyAccent(int index)
     {
+        var (_, ha, hb) = Accents[Math.Clamp(index, 0, Accents.Length - 1)];
+        Color a = Color.Parse(ha), b = Color.Parse(hb);
         var r = Application.Current!.Resources;
         r["Accent"] = new SolidColorBrush(a);
         r["AccentBright"] = new SolidColorBrush(b);

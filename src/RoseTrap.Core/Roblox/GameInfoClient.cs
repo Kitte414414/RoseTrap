@@ -8,7 +8,8 @@ public sealed record GameInfo(long PlaceId, long UniverseId, string Name, string
 /// <summary>Looks up a game's name and pictures through Roblox's public web APIs (no login needed).</summary>
 public static class GameInfoClient
 {
-    public static async Task<GameInfo?> GetAsync(HttpClient http, long placeId, CancellationToken ct = default)
+    /// <param name="images">Also look up the icon and thumbnail URLs (two more requests).</param>
+    public static async Task<GameInfo?> GetAsync(HttpClient http, long placeId, bool images = true, CancellationToken ct = default)
     {
         try
         {
@@ -19,8 +20,8 @@ public static class GameInfoClient
             if (games is not { } g || g.GetProperty("data").GetArrayLength() == 0) return null;
             var game = g.GetProperty("data")[0];
 
-            var icon = await FirstImage(http, $"https://thumbnails.roblox.com/v1/games/icons?universeIds={universe}&size=256x256&format=Png&isCircular=false", nested: false, ct);
-            var thumb = await FirstImage(http, $"https://thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds={universe}&countPerUniverse=1&size=768x432&format=Png", nested: true, ct);
+            var icon = !images ? null : await FirstImage(http, $"https://thumbnails.roblox.com/v1/games/icons?universeIds={universe}&size=256x256&format=Png&isCircular=false", nested: false, ct);
+            var thumb = !images ? null : await FirstImage(http, $"https://thumbnails.roblox.com/v1/games/multiget/thumbnails?universeIds={universe}&countPerUniverse=1&size=768x432&format=Png", nested: true, ct);
 
             return new GameInfo(placeId, universe,
                 game.GetProperty("name").GetString() ?? "Roblox game",

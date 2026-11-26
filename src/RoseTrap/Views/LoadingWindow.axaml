@@ -6,115 +6,128 @@
         x:DataType="vm:LoadingSession"
         Title="RoseTrap · Loading"
         Icon="/Assets/rosetrap.ico"
-        Width="720" Height="405" CanResize="False"
-        SystemDecorations="None" Topmost="True" ShowInTaskbar="True"
+        Width="400" Height="292" CanResize="False"
+        SystemDecorations="None" Topmost="True"
         Background="Transparent" TransparencyLevelHint="Transparent"
         WindowStartupLocation="CenterScreen">
   <Window.Styles>
-    <Style Selector="Ellipse.dot">
-      <Setter Property="Width" Value="8" />
-      <Setter Property="Height" Value="8" />
-      <Setter Property="Fill" Value="#4a3f44" />
+    <Style Selector="Button.small">
+      <Setter Property="Height" Value="32" />
+      <Setter Property="Padding" Value="16,0" />
+      <Setter Property="Background" Value="#29282b" />
+      <Setter Property="Foreground" Value="#ece5e8" />
+      <Setter Property="FontSize" Value="12.5" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="bg" Background="{TemplateBinding Background}" CornerRadius="8" Padding="{TemplateBinding Padding}">
+            <Border.Transitions>
+              <Transitions><BrushTransition Property="Background" Duration="0:0:0.25" Easing="{StaticResource EaseOut}" /></Transitions>
+            </Border.Transitions>
+            <ContentPresenter Name="label" Content="{TemplateBinding Content}" Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center">
+              <ContentPresenter.Transitions>
+                <Transitions><BrushTransition Property="Foreground" Duration="0:0:0.25" /></Transitions>
+              </ContentPresenter.Transitions>
+            </ContentPresenter>
+          </Border>
+        </ControlTemplate>
+      </Setter>
     </Style>
-    <Style Selector="TextBlock.step">
-      <Setter Property="FontSize" Value="11.5" />
-      <Setter Property="Foreground" Value="#7d7277" />
-      <Setter Property="VerticalAlignment" Value="Center" />
+    <Style Selector="Button.small:pointerover /template/ Border#bg"><Setter Property="Background" Value="#34303a" /></Style>
+    <Style Selector="Button.small.accent:pointerover /template/ Border#bg"><Setter Property="Background" Value="{DynamicResource Accent}" /></Style>
+    <Style Selector="Button.small.accent:pointerover /template/ ContentPresenter#label"><Setter Property="Foreground" Value="{DynamicResource AccentInk}" /></Style>
+    <Style Selector="Button#HideButton">
+      <Setter Property="Width" Value="26" />
+      <Setter Property="Height" Value="26" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="bg" Background="Transparent" CornerRadius="7">
+            <Border.Transitions>
+              <Transitions><BrushTransition Property="Background" Duration="0:0:0.2" /></Transitions>
+            </Border.Transitions>
+            <ContentPresenter Content="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+        </ControlTemplate>
+      </Setter>
     </Style>
+    <Style Selector="Button#HideButton:pointerover /template/ Border#bg"><Setter Property="Background" Value="#2e2a2d" /></Style>
+    <Style Selector="Button#HideButton Path">
+      <Setter Property="Fill" Value="#6f686c" />
+      <Setter Property="Transitions"><Transitions><BrushTransition Property="Fill" Duration="0:0:0.2" /></Transitions></Setter>
+    </Style>
+    <Style Selector="Button#HideButton:pointerover Path"><Setter Property="Fill" Value="{DynamicResource AccentBright}" /></Style>
+    <Style Selector="TextBlock#HeadingText"><Setter Property="Foreground" Value="#f2eaee" /></Style>
+    <Style Selector="TextBlock#HeadingText.failed"><Setter Property="Foreground" Value="{DynamicResource Danger}" /></Style>
   </Window.Styles>
 
-  <Border Name="Card" CornerRadius="14" ClipToBounds="True" Background="{DynamicResource Shell}"
-          BorderBrush="#3a3035" BorderThickness="1">
+  <Border Name="Card" Margin="10" CornerRadius="16" Background="#1e1e20" BorderBrush="#2e2c30" BorderThickness="1"
+          BoxShadow="0 10 30 0 #70000000" Opacity="0" RenderTransform="translateY(6px)">
     <Border.Transitions>
-      <Transitions><DoubleTransition Property="Opacity" Duration="0:0:0.35" /></Transitions>
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.35" Easing="{StaticResource EaseOut}" />
+        <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.45" Easing="{StaticResource EaseOut}" />
+      </Transitions>
     </Border.Transitions>
-    <Panel>
-      <!-- Game picture, faded into the card from the left so the text stays readable. -->
-      <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" Opacity="0.75" />
-      <c:LogoRose Width="330" Height="300" Margin="0,10,10,0" HorizontalAlignment="Right" VerticalAlignment="Top" IsHitTestVisible="False"
-                  IsVisible="{Binding Thumbnail, Converter={x:Static ObjectConverters.IsNull}}" />
-      <Ellipse Width="520" Height="420" Margin="-140,-120,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"
-               IsVisible="{Binding Thumbnail, Converter={x:Static ObjectConverters.IsNull}}" IsHitTestVisible="False">
-        <Ellipse.Fill>
-          <RadialGradientBrush>
-            <GradientStop Offset="0" Color="#30a64f68" />
-            <GradientStop Offset="1" Color="#00000000" />
-          </RadialGradientBrush>
-        </Ellipse.Fill>
-      </Ellipse>
-      <Border IsHitTestVisible="False">
-        <Border.Background>
-          <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
-            <GradientStop Offset="0" Color="#f0141113" />
-            <GradientStop Offset="0.55" Color="#b0141113" />
-            <GradientStop Offset="1" Color="#40141113" />
-          </LinearGradientBrush>
-        </Border.Background>
-      </Border>
-      <Border IsHitTestVisible="False" VerticalAlignment="Bottom" Height="190">
-        <Border.Background>
-          <LinearGradientBrush StartPoint="0%,0%" EndPoint="0%,100%">
-            <GradientStop Offset="0" Color="#00141113" />
-            <GradientStop Offset="1" Color="#f2141113" />
-          </LinearGradientBrush>
-        </Border.Background>
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+      <Button Name="HideButton" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,8,8,0" ToolTip.Tip="Hide">
+        <Viewbox Width="9" Height="9"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Close}" /></Canvas></Viewbox>
+      </Button>
+
+      <Border Width="104" Height="104" Margin="0,14,0,0" CornerRadius="14" Background="#121213" BorderBrush="#232225"
+              BorderThickness="1" HorizontalAlignment="Center" ClipToBounds="True">
+        <Panel>
+          <Ellipse Width="96" Height="84" IsHitTestVisible="False">
+            <Ellipse.Fill>
+              <RadialGradientBrush>
+                <GradientStop Offset="0" Color="#26a64f68" />
+                <GradientStop Offset="1" Color="#00000000" />
+              </RadialGradientBrush>
+            </Ellipse.Fill>
+          </Ellipse>
+          <c:LogoRose Name="Rose" Margin="6" />
+        </Panel>
       </Border>
 
-      <Grid RowDefinitions="Auto,*,Auto,Auto,Auto" Margin="28,22,28,24">
-        <Grid ColumnDefinitions="Auto,*,Auto">
-          <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-            <Image Source="{StaticResource AppIcon}" Width="26" Height="26" VerticalAlignment="Center" />
-            <TextBlock FontSize="14" FontWeight="SemiBold" LetterSpacing="-0.3" VerticalAlignment="Center">
-              <Run Text="Rose" Foreground="#f0e9ec" /><Run Text="Trap" Foreground="{DynamicResource Accent}" />
-            </TextBlock>
-          </StackPanel>
-          <Button Grid.Column="2" Name="HideButton" Classes="icon" ToolTip.Tip="Hide loading screen" VerticalAlignment="Center">
-            <Viewbox Width="11" Height="11"><Canvas Width="24" Height="24"><Path Data="{StaticResource Icon.Close}" Fill="#b8b1b5" /></Canvas></Viewbox>
-          </Button>
-        </Grid>
+      <TextBlock Grid.Row="1" Name="HeadingText" Classes.failed="{Binding Failed}" Text="{Binding Heading}" Margin="0,14,0,0"
+                 HorizontalAlignment="Center" FontSize="16" FontWeight="SemiBold" />
+      <TextBlock Grid.Row="2" Name="DetailText" Text="{Binding Detail}" Margin="24,4,24,0" HorizontalAlignment="Center"
+                 TextAlignment="Center" TextTrimming="CharacterEllipsis" MaxLines="2" TextWrapping="Wrap"
+                 FontSize="12" Foreground="#9b9398" />
+      <TextBlock Grid.Row="3" Name="GameText" Text="{Binding Game}" IsVisible="{Binding Game, Converter={x:Static ObjectConverters.IsNotNull}}"
+                 Margin="24,3,24,0" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis"
+                 FontSize="11.5" Foreground="{DynamicResource Accent}" />
 
-        <Grid Grid.Row="2" ColumnDefinitions="Auto,*" Margin="0,0,0,18">
-          <Border Width="64" Height="64" CornerRadius="12" ClipToBounds="True" Margin="0,0,16,0" Background="#2a2226"
-                  BorderBrush="#40ffffff" BorderThickness="1" IsVisible="{Binding Icon, Converter={x:Static ObjectConverters.IsNotNull}}">
-            <Image Source="{Binding Icon}" Stretch="UniformToFill" />
+      <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center" VerticalAlignment="Center"
+                  IsVisible="{Binding Failed}">
+        <Button Name="RetryButton" Classes="small accent" Content="Try again" />
+        <Button Name="SettingsButton" Classes="small" Content="Settings" />
+      </StackPanel>
+
+      <!-- Progress: the percentage rides on the end of the fill; both glide between updates. -->
+      <Grid Grid.Row="5" Margin="14,0,14,14" RowDefinitions="Auto,Auto,Auto" IsVisible="{Binding !Failed}">
+        <Panel Name="LabelLane" Height="14">
+          <TextBlock Name="PercentText" Text="{Binding Percent}" FontSize="10" Foreground="#a99ea4"
+                     HorizontalAlignment="Left" RenderTransform="none">
+            <TextBlock.Transitions>
+              <Transitions><TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.6" Easing="{StaticResource EaseOut}" /></Transitions>
+            </TextBlock.Transitions>
+          </TextBlock>
+          <TextBlock Name="EndText" Text="100%" FontSize="10" Foreground="#5e585c" HorizontalAlignment="Right" />
+        </Panel>
+        <Panel Grid.Row="1" Name="Track" Height="4" Margin="0,3,0,0">
+          <Border CornerRadius="2" Background="#2b2a2d" />
+          <Border Name="Fill" CornerRadius="2" Background="{DynamicResource Accent}" HorizontalAlignment="Stretch"
+                  RenderTransformOrigin="0%,50%" RenderTransform="scaleX(0)">
+            <Border.Transitions>
+              <Transitions><TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.6" Easing="{StaticResource EaseOut}" /></Transitions>
+            </Border.Transitions>
           </Border>
-          <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="3">
-            <TextBlock Name="GameTitle" Text="{Binding Title}" FontSize="26" FontWeight="SemiBold" Foreground="#f6eef1"
-                       TextTrimming="CharacterEllipsis" LetterSpacing="-0.4" />
-            <TextBlock Text="{Binding Subtitle}" FontSize="13" Foreground="#b9adb3" TextTrimming="CharacterEllipsis" />
-          </StackPanel>
-        </Grid>
-
-        <ItemsControl Grid.Row="3" ItemsSource="{Binding Steps}" Margin="0,0,0,12">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="18" /></ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="vm:LoadingStep">
-              <StackPanel Orientation="Horizontal" Spacing="7">
-                <Ellipse Classes="dot" Classes.active="{Binding IsActive}" Classes.done="{Binding IsDone}" />
-                <TextBlock Classes="step" Classes.active="{Binding IsActive}" Classes.done="{Binding IsDone}" Text="{Binding Title}" />
-              </StackPanel>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-          <ItemsControl.Styles>
-            <Style Selector="Ellipse.dot.done"><Setter Property="Fill" Value="{DynamicResource Accent}" /></Style>
-            <Style Selector="Ellipse.dot.active"><Setter Property="Fill" Value="{DynamicResource AccentBright}" /></Style>
-            <Style Selector="TextBlock.step.done"><Setter Property="Foreground" Value="#a99da3" /></Style>
-            <Style Selector="TextBlock.step.active"><Setter Property="Foreground" Value="#f2e9ed" /></Style>
-          </ItemsControl.Styles>
-        </ItemsControl>
-
-        <Grid Grid.Row="4" ColumnDefinitions="*,Auto">
-          <ProgressBar Name="Bar" Classes="launch" Minimum="0" Maximum="1" Value="{Binding Progress}" VerticalAlignment="Center">
-            <ProgressBar.Transitions>
-              <Transitions><DoubleTransition Property="Value" Duration="0:0:0.45" /></Transitions>
-            </ProgressBar.Transitions>
-          </ProgressBar>
-          <TextBlock Grid.Column="1" Name="StatusText" Text="{Binding Status}" Margin="14,0,0,0" MinWidth="120" TextAlignment="Right"
-                     FontSize="12" Foreground="#c9bec3" VerticalAlignment="Center" />
-        </Grid>
+        </Panel>
+        <TextBlock Grid.Row="2" Name="NoteText" Text="{Binding Note}" IsVisible="{Binding Note, Converter={x:Static ObjectConverters.IsNotNull}}"
+                   Margin="0,8,0,0" HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" FontSize="10.5" Foreground="#7e767b" />
       </Grid>
-    </Panel>
+    </Grid>
   </Border>
 </Window>

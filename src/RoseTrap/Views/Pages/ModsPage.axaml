@@ -207,6 +207,21 @@
         </Border>
       </Grid>
 
+      <!-- Skybox -->
+      <Border Classes="panel">
+        <Grid Classes="row" ColumnDefinitions="Auto,*,Auto">
+          <Border Width="64" Height="40" CornerRadius="6" ClipToBounds="True" Margin="0,0,14,0" VerticalAlignment="Center"
+                  Background="#19191b" BorderBrush="#2b2a2d" BorderThickness="1">
+            <Image Source="{Binding SkyPreview}" Stretch="UniformToFill" />
+          </Border>
+          <StackPanel Grid.Column="1">
+            <TextBlock Classes="h3" Text="Skybox" />
+            <TextBlock Classes="sub" Text="{Binding SkyboxDescription}" />
+          </StackPanel>
+          <ComboBox Grid.Column="2" ItemsSource="{x:Static vm:MainViewModel.SkyboxNames}" SelectedIndex="{Binding SkyboxIndex}" />
+        </Grid>
+      </Border>
+
       <!-- Mod folder -->
       <Border Classes="panel">
         <StackPanel>

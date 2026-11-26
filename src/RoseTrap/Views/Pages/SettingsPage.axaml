@@ -25,12 +25,7 @@
             </Grid>
             <Border Classes="divider" />
             <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel><TextBlock Classes="label" Text="Close after launching" /><TextBlock Classes="hint" Text="Minimises instead while shaders are on." /></StackPanel>
-              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding CloseAfterLaunch}" />
-            </Grid>
-            <Border Classes="divider" />
-            <Grid Classes="row" ColumnDefinitions="*,Auto">
-              <StackPanel><TextBlock Classes="label" Text="Multiple instances" /><TextBlock Classes="hint" Text="Run several Roblox windows. RoseTrap stays open." /></StackPanel>
+              <StackPanel><TextBlock Classes="label" Text="Multiple instances" /><TextBlock Classes="hint" Text="Run several Roblox windows. RoseTrap waits in the background." /></StackPanel>
               <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding MultiInstance}" />
             </Grid>
           </StackPanel>

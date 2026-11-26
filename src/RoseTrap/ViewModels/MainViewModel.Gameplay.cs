@@ -1,4 +1,3 @@
-using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using RoseTrap.Core.Roblox;
 using RoseTrap.Core.Settings;
@@ -15,11 +14,11 @@ public sealed partial class MainViewModel
     DispatcherTimer? _gpSave;
     bool _gpFileMissing;
 
-    /// <summary>Raised when a launch starts showing the loading screen.</summary>
+    /// <summary>Raised by the loading-screen preview.</summary>
     public event Action<LoadingSession>? LoadingStarted;
 
     /// <summary>Overridable so tests don't depend on a real Roblox process.</summary>
-    public Func<bool> IsRobloxRunning { get; set; } = ShaderService.RobloxRunning;
+    public Func<bool> IsRobloxRunning { get; set; } = RobloxProcess.IsRunning;
 
     /// <summary>Re-reads Roblox's settings file; called whenever the Gameplay page is shown.</summary>
     public void LoadGameplay()
@@ -117,50 +116,27 @@ public sealed partial class MainViewModel
 
     // ---------- loading screen ----------
 
-    LoadingSession? BeginLoading(string? link)
-    {
-        if (!_s.Launcher.CustomLoadingScreen) return null;
-        var session = new LoadingSession(joinsGame: link is not null, link is null ? null : LaunchUri.PlaceId(link));
-        if (link is null) { session.Title = "Roblox"; session.Subtitle = "Opening the Roblox app"; }
-        LoadingStarted?.Invoke(session);
-        if (session.PlaceId is { } id) _ = ShowGameAsync(session, id);
-        return session;
-    }
+    /// <summary>A loading panel for this launch, or null when the custom loading screen is turned off.</summary>
+    public LoadingSession? NewLoadingSession(string? link) =>
+        _s.Launcher.CustomLoadingScreen ? new LoadingSession(joinsGame: link is not null, link is null ? null : LaunchUri.PlaceId(link)) : null;
 
     async Task ShowGameAsync(LoadingSession session, long placeId)
     {
-        if (await GameInfoClient.GetAsync(_http, placeId) is not { } g) return;
-        session.ShowGame(g);
-        session.Thumbnail = await LoadImage(g.ThumbnailUrl);
-        session.Icon = await LoadImage(g.IconUrl);
-    }
-
-    async Task<Bitmap?> LoadImage(string? url)
-    {
-        if (url is null) return null;
-        try
-        {
-            var bytes = await _http.GetByteArrayAsync(url);
-            return new Bitmap(new MemoryStream(bytes));
-        }
-        catch (Exception e) when (e is HttpRequestException or TaskCanceledException or ArgumentException or InvalidOperationException)
-        {
-            return null;
-        }
+        if (await GameInfoClient.GetAsync(_http, placeId, images: false) is { } g) session.ShowGame(g);
     }
 
     /// <summary>Follows Roblox's log until the game has loaded, Roblox closes, or two minutes pass.</summary>
     async Task FollowLoadingAsync(LoadingSession session, LaunchResult r)
     {
         session.Started();
-        if (session.IsDone) { await Task.Delay(900); return; }
+        if (session.IsDone) { await Task.Delay(700); return; }
 
         using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         var watch = Task.Run(() => RobloxLog.WatchAsync(_paths.RobloxLogs, r.LaunchedAt,
             e => Dispatcher.UIThread.Post(() =>
             {
                 session.OnJoin(e);
-                if (e.PlaceId is { } id && !session.HasGame) _ = ShowGameAsync(session, id);
+                if (e.PlaceId is { } id && session.Game is null) _ = ShowGameAsync(session, id);
             }), cts.Token));
 
         while (!session.IsDone && !cts.IsCancellationRequested)
@@ -172,20 +148,20 @@ public sealed partial class MainViewModel
         cts.Cancel();
         try { await watch; } catch (OperationCanceledException) { }
         catch (Exception e) when (e is IOException or UnauthorizedAccessException) { }
-        await Task.Delay(600); // let "Ready" show before the screen fades
     }
 
     /// <summary>
-    /// Plays the loading screen with made-up stages so it can be seen without starting Roblox.
-    /// <paramref name="placeId"/> fetches a real game's name and pictures; <paramref name="hold"/> stops before the end.
+    /// Plays the loading panel with made-up stages so it can be seen without starting Roblox.
+    /// <paramref name="placeId"/> fetches a real game's name; <paramref name="hold"/> stops before the end.
     /// </summary>
     public LoadingSession PreviewLoading(long? placeId = null, bool hold = false)
     {
-        var session = new LoadingSession(joinsGame: true, placeId) { IsPreview = true, Title = "Your game", Subtitle = "Preview · the game's picture appears here" };
+        var session = new LoadingSession(joinsGame: true, placeId) { IsPreview = true };
         LoadingStarted?.Invoke(session);
         if (placeId is { } id) _ = ShowGameAsync(session, id);
         Action[] script =
         [
+            () => session.Report(new("Downloading Roblox", .6)),
             () => session.Report(new("Applying settings", 1)),
             () => session.Report(new("Starting Roblox", 1)),
             () => session.Started(),
@@ -193,7 +169,7 @@ public sealed partial class MainViewModel
             () => session.OnJoin(new JoinEvent(JoinStage.Connected)),
             () => session.OnJoin(new JoinEvent(JoinStage.Loaded)),
         ];
-        int i = 0, end = hold ? script.Length - 1 : script.Length;
+        int i = 0, end = hold ? 5 : script.Length;
         var t = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(1100) };
         t.Tick += (_, _) => { if (session.IsDone || i >= end) { t.Stop(); return; } script[i++](); };
         t.Start();

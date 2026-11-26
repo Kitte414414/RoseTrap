@@ -24,7 +24,7 @@ public sealed class GraphicsSettings
     /// <summary>Lets Alt+Enter switch to true exclusive fullscreen.</summary>
     public bool ExclusiveFullscreen { get; set; }
 
-    // "Shaders" page: the look of the game.
+    // Lighting and rendering (Global page).
     public LightingTech Lighting { get; set; }
     public bool Shadows { get; set; } = true;
     public bool PostProcessing { get; set; } = true;
@@ -57,7 +57,6 @@ public sealed class LauncherSettings
     public bool InterceptLinks { get; set; } = true;
     public bool MultiInstance { get; set; }
     public string Channel { get; set; } = "LIVE";
-    public bool CloseAfterLaunch { get; set; } = true;
     /// <summary>Cover Roblox's own loading screen with RoseTrap's until the game has loaded.</summary>
     public bool CustomLoadingScreen { get; set; } = true;
     /// <summary>Gameplay settings chosen while Roblox was running; written before the next launch.</summary>
@@ -72,15 +71,9 @@ public sealed class AppearanceSettings
     public bool Animations { get; set; } = true;
 }
 
+/// <summary>Kept under its old "Shaders" name so saved skybox choices survive the colour grading removal.</summary>
 public sealed class ShaderSettings
 {
-    /// <summary>Colour grading on/off.</summary>
-    public bool Enabled { get; set; }
-    /// <summary>A preset name from <see cref="Shaders.ShaderPresets"/>, or "Custom".</summary>
-    public string Preset { get; set; } = "Rose Bloom";
-    public Shaders.ColorGrade Grade { get; set; } = Shaders.ShaderPresets.Find("Rose Bloom")!.Grade;
-    /// <summary>Grade only while Roblox is the window in front, so the rest of the desktop stays normal.</summary>
-    public bool OnlyWhenRobloxFocused { get; set; } = true;
     public string Skybox { get; set; } = Shaders.Skyboxes.Default;
 }
 
