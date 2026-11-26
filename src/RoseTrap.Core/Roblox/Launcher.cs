@@ -9,6 +9,8 @@ public sealed record LaunchResult(RobloxInstall Install, ApplyResult? Flags, IRe
     public IReadOnlyList<string> Warnings { get; init; } = [];
     /// <summary>Game preset that was applied for this launch, if any.</summary>
     public string? GamePreset { get; init; }
+    public DateTime LaunchedAt { get; init; }
+    public int? ProcessId { get; init; }
 }
 
 /// <summary>Install or update, apply settings, start the player. The whole "Launch" button.</summary>
@@ -40,8 +42,17 @@ public sealed class Launcher(Installer installer, AppPaths paths)
     {
         var install = await installer.EnsureLatestAsync(s.Launcher.Channel, progress, ct);
 
+        progress?.Report(new("Applying settings", 1));
         // A settings file we can't write must not stop the game from starting: report it instead.
         var warnings = new List<string>();
+        if (s.Launcher.PendingGameplay is { } pending)
+        {
+            try { if (GameplayStore.Write(paths.GlobalBasicSettings, pending)) s.Launcher.PendingGameplay = null; }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Xml.XmlException)
+            {
+                warnings.Add($"Gameplay settings weren't saved: {e.Message}");
+            }
+        }
         ApplyResult? flags = null;
         string? gamePreset = null;
         IReadOnlyList<string> skipped = [];
@@ -81,16 +92,20 @@ public sealed class Launcher(Installer installer, AppPaths paths)
             _multiInstance ??= new Mutex(initiallyOwned: true, RobloxSingletonMutex);
 
         progress?.Report(new("Starting Roblox", 1));
-        Process.Start(new ProcessStartInfo
+        var launchedAt = DateTime.UtcNow;
+        using var process = Process.Start(new ProcessStartInfo
         {
             FileName = install.Executable,
             // No link means "open the app", the same as the desktop shortcut.
             Arguments = link is null ? "--app" : $"\"{link}\"",
             WorkingDirectory = install.Directory,
             UseShellExecute = false,
-        })?.Dispose();
+        });
 
-        return new LaunchResult(install, flags, skipped, gbs) { Warnings = warnings, GamePreset = gamePreset };
+        return new LaunchResult(install, flags, skipped, gbs)
+        {
+            Warnings = warnings, GamePreset = gamePreset, LaunchedAt = launchedAt, ProcessId = process?.Id,
+        };
     }
 
     /// <summary>True while RoseTrap must stay open to keep multi-instance working.</summary>

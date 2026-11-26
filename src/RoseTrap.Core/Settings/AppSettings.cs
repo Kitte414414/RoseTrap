@@ -58,6 +58,10 @@ public sealed class LauncherSettings
     public bool MultiInstance { get; set; }
     public string Channel { get; set; } = "LIVE";
     public bool CloseAfterLaunch { get; set; } = true;
+    /// <summary>Cover Roblox's own loading screen with RoseTrap's until the game has loaded.</summary>
+    public bool CustomLoadingScreen { get; set; } = true;
+    /// <summary>Gameplay settings chosen while Roblox was running; written before the next launch.</summary>
+    public GameplaySettings? PendingGameplay { get; set; }
 }
 
 public sealed class AppearanceSettings

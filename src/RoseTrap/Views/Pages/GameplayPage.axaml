@@ -1,0 +1,105 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:RoseTrap.ViewModels"
+             xmlns:c="using:RoseTrap.Controls"
+             x:Class="RoseTrap.Views.Pages.GameplayPage"
+             x:DataType="vm:MainViewModel">
+  <ScrollViewer>
+    <StackPanel Classes="page">
+      <Grid Classes="page-head" ColumnDefinitions="*,Auto">
+        <StackPanel>
+          <TextBlock Classes="h2" Text="Gameplay" />
+          <TextBlock Classes="sub" Text="Roblox's own in-game settings, the same ones as its Esc menu." />
+        </StackPanel>
+        <Button Grid.Column="1" Name="ResetButton" Classes="ghost" VerticalAlignment="Center" Content="Reset to defaults" />
+      </Grid>
+
+      <Border Classes="panel" Padding="14,10">
+        <Grid ColumnDefinitions="Auto,*">
+          <Ellipse Width="7" Height="7" Margin="2,0,10,0" VerticalAlignment="Center" Fill="{DynamicResource AccentBright}" />
+          <TextBlock Grid.Column="1" Name="GameplayStatusText" Classes="sub" Text="{Binding GameplayStatus}" TextWrapping="Wrap" />
+        </Grid>
+      </Border>
+
+      <Grid ColumnDefinitions="*,14,*">
+        <Border Classes="panel">
+          <StackPanel>
+            <StackPanel Classes="head">
+              <TextBlock Classes="h3" Text="Camera and controls" />
+              <TextBlock Classes="sub" Text="How you look around and move." />
+            </StackPanel>
+            <Border Classes="divider" />
+            <Grid Classes="slider-row" ColumnDefinitions="110,*,54" Margin="0,8,0,8">
+              <TextBlock Text="Sensitivity" />
+              <Slider Grid.Column="1" Name="SensitivitySlider" Minimum="0.1" Maximum="4" SmallChange="0.05" LargeChange="0.25" Value="{Binding Sensitivity}" />
+              <TextBlock Grid.Column="2" Classes="val" Text="{Binding SensitivityLabel}" Foreground="{DynamicResource AccentBright}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel><TextBlock Classes="label" Text="Invert camera" /><TextBlock Classes="hint" Text="Moving the mouse up looks down." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding InvertCamera}" />
+            </Grid>
+            <Border Classes="divider" />
+            <StackPanel Margin="0,12,0,12" Spacing="8">
+              <StackPanel><TextBlock Classes="label" Text="Camera mode" /><TextBlock Classes="hint" Text="Games can override this." /></StackPanel>
+              <c:Segmented Options="Default,Classic,Follow,Toggle" SelectedIndex="{Binding CameraModeIndex}" HorizontalAlignment="Left" />
+            </StackPanel>
+            <Border Classes="divider" />
+            <StackPanel Margin="0,12,0,4" Spacing="8">
+              <StackPanel><TextBlock Classes="label" Text="Movement" /><TextBlock Classes="hint" Text="Keys, or click where to walk." /></StackPanel>
+              <c:Segmented Options="Default,Keyboard,Click to move" SelectedIndex="{Binding MovementIndex}" HorizontalAlignment="Left" />
+            </StackPanel>
+          </StackPanel>
+        </Border>
+
+        <Border Grid.Column="2" Classes="panel">
+          <StackPanel>
+            <StackPanel Classes="head">
+              <TextBlock Classes="h3" Text="Screen and sound" />
+              <TextBlock Classes="sub" Text="Window, volume and menus." />
+            </StackPanel>
+            <Border Classes="divider" />
+            <Grid Classes="slider-row" ColumnDefinitions="110,*,54" Margin="0,8,0,8">
+              <TextBlock Text="Volume" />
+              <Slider Grid.Column="1" Minimum="0" Maximum="10" TickFrequency="1" IsSnapToTickEnabled="True" Value="{Binding Volume}" />
+              <TextBlock Grid.Column="2" Classes="val" Text="{Binding VolumeLabel}" Foreground="{DynamicResource AccentBright}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel><TextBlock Classes="label" Text="Fullscreen" /><TextBlock Classes="hint" Text="Start Roblox fullscreen." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding RobloxFullscreen}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel><TextBlock Classes="label" Text="Performance stats" /><TextBlock Classes="hint" Text="FPS, ping and memory in the corner." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding PerformanceStats}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="row" ColumnDefinitions="*,Auto">
+              <StackPanel><TextBlock Classes="label" Text="Reduced motion" /><TextBlock Classes="hint" Text="Fewer menu animations." /></StackPanel>
+              <ToggleButton Grid.Column="1" Classes="switch" IsChecked="{Binding ReducedMotion}" />
+            </Grid>
+            <Border Classes="divider" />
+            <Grid Classes="slider-row" ColumnDefinitions="110,*,54" Margin="0,8,0,4">
+              <TextBlock Text="Menu see-through" />
+              <Slider Grid.Column="1" Minimum="0" Maximum="100" TickFrequency="10" IsSnapToTickEnabled="True" Value="{Binding UiTransparency}" />
+              <TextBlock Grid.Column="2" Classes="val" Text="{Binding UiTransparencyLabel}" Foreground="{DynamicResource AccentBright}" />
+            </Grid>
+          </StackPanel>
+        </Border>
+      </Grid>
+
+      <Border Classes="panel">
+        <Grid ColumnDefinitions="*,Auto,Auto">
+          <StackPanel Margin="0,0,16,0">
+            <TextBlock Classes="h3" Text="Loading screen" />
+            <TextBlock Classes="sub" TextWrapping="Wrap"
+                       Text="RoseTrap's own loading screen with the game's picture, following Roblox's log: preparing, starting, joining the server, loading. It closes once the game has loaded." />
+          </StackPanel>
+          <Button Grid.Column="1" Name="PreviewLoadingButton" Classes="ghost" Content="Preview" VerticalAlignment="Center" Margin="0,0,14,0" />
+          <ToggleButton Grid.Column="2" Classes="switch" IsChecked="{Binding CustomLoadingScreen}" VerticalAlignment="Center" />
+        </Grid>
+      </Border>
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>

@@ -72,7 +72,7 @@ public class UiTests : IDisposable
     public void EveryPageRenders()
     {
         var (w, _) = Open();
-        foreach (var page in new[] { "Welcome", "General", "Global", "FFlags", "FFlags Settings", "Preset", "Shaders", "Mods", "Settings", "Appearance" })
+        foreach (var page in new[] { "Welcome", "General", "Gameplay", "Global", "FFlags", "FFlags Settings", "Preset", "Shaders", "Mods", "Settings", "Appearance" })
         {
             w.Navigate(page);
             Wait(700);
@@ -207,6 +207,92 @@ public class UiTests : IDisposable
         sv.Offset = new Vector(0, 560);
         Wait(100);
         Snap(w, "ModsBottom");
+    }
+
+    [AvaloniaFact]
+    public void GameplayPageEditsRobloxSettings()
+    {
+        var file = new AppPaths(_root).GlobalBasicSettings;
+        Directory.CreateDirectory(Path.GetDirectoryName(file)!);
+        File.WriteAllText(file, """
+            <roblox version="4"><Item class="UserGameSettings" referent="RBX0"><Properties>
+            <float name="MouseSensitivity">0.8</float><float name="MasterVolume">1</float><int name="FramerateCap">60</int>
+            </Properties></Item></roblox>
+            """);
+        var (w, vm) = Open();
+        vm.IsRobloxRunning = () => false;
+        w.Navigate("Gameplay");
+        Wait(300);
+        Assert.Equal(.8, vm.Sensitivity, 3);
+        Assert.Equal("0.80", vm.SensitivityLabel);
+
+        vm.Sensitivity = 1.5;
+        vm.Volume = 4;
+        vm.CameraModeIndex = 3;
+        Wait(500); // debounce
+        var saved = Core.Settings.GameplayStore.Read(file)!;
+        Assert.Equal(1.5, saved.MouseSensitivity, 3);
+        Assert.Equal(.4, saved.Volume, 3);
+        Assert.Equal(Core.Settings.CameraMovement.CameraToggle, saved.CameraMode);
+        Assert.Null(vm.Settings.Launcher.PendingGameplay);
+        Snap(w, "Gameplay");
+
+        // While Roblox is open its exit would overwrite the file, so the change waits for the next launch.
+        vm.IsRobloxRunning = () => true;
+        vm.Volume = 7;
+        vm.SaveGameplay();
+        Assert.Equal(.4, Core.Settings.GameplayStore.Read(file)!.Volume, 3);
+        Assert.Equal(.7, vm.Settings.Launcher.PendingGameplay!.Volume, 3);
+        Assert.Contains("next launch", vm.GameplayStatus);
+    }
+
+    [AvaloniaFact]
+    public void LoadingScreenFollowsStagesAndCloses()
+    {
+        var s = new LoadingSession(joinsGame: true, placeId: 606849621);
+        var win = new LoadingWindow { DataContext = s };
+        win.Show();
+        Pump();
+        Assert.Equal(0, s.Progress);
+        Assert.True(s.Steps[0].IsActive);
+
+        s.Report(new("Downloading Roblox", .5));
+        s.Report(new("Starting Roblox", 1));
+        s.Started();
+        s.OnJoin(new Core.Roblox.JoinEvent(Core.Roblox.JoinStage.Joining, 606849621));
+        s.ShowGame(new Core.Roblox.GameInfo(606849621, 245662005, "Jailbreak", "Badimo", 0, null, null));
+        Wait(600);
+        Assert.True(s.Steps[2].IsActive);
+        Assert.True(s.Steps[1].IsDone);
+        Assert.InRange(s.Progress, .55, .65);
+        Snap(win, "LoadingScreen");
+
+        s.OnJoin(new Core.Roblox.JoinEvent(Core.Roblox.JoinStage.Connected));
+        s.OnJoin(new Core.Roblox.JoinEvent(Core.Roblox.JoinStage.Loaded));
+        Assert.True(s.IsDone);
+        Assert.Equal(1, s.Progress, 3);
+        Wait(700);
+        Assert.False(win.IsVisible); // faded and closed
+    }
+
+    [AvaloniaFact]
+    public void PreviewDoesNotMinimiseAndAppLaunchFinishesOnStart()
+    {
+        var (w, vm) = Open();
+        LoadingSession? shown = null;
+        vm.LoadingStarted += s => shown = s;
+        var s = vm.PreviewLoading(hold: true);
+        Pump();
+        Assert.Same(s, shown);
+        Assert.True(s.IsPreview);
+        Assert.Equal(WindowState.Normal, w.WindowState);
+        s.Finish();
+
+        var app = new LoadingSession(joinsGame: false, placeId: null);
+        Assert.Equal(2, app.Steps.Count);
+        app.Started();
+        Assert.True(app.IsDone);
+        Assert.Equal(1, app.Progress, 3);
     }
 
     [AvaloniaFact]

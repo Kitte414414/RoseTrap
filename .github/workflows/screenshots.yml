@@ -28,15 +28,17 @@ jobs:
           $b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds
           Write-Host "screen $($b.Width)x$($b.Height)"
           New-Item -ItemType Directory shots | Out-Null
-          $pages = @("Welcome","General","Global","FFlags","FFlags Settings","Preset","Shaders","Mods","Settings","Appearance")
+          $pages = @("Welcome","General","Gameplay","Global","FFlags","FFlags Settings","Preset","Shaders","Mods","Settings","Appearance")
           foreach ($p in $pages) {
-            foreach ($mode in @("", "--expanded", "--test-crosshair")) {
+            foreach ($mode in @("", "--expanded", "--test-crosshair", "--test-loading")) {
               if ($mode -eq "--expanded" -and $p -ne "Global") { continue }
               if ($mode -eq "--test-crosshair" -and $p -ne "Mods") { continue }
+              if ($mode -eq "--test-loading" -and $p -ne "Gameplay") { continue }
               $args = @("--page", "`"$p`"")
               if ($mode) { $args += $mode }
+              if ($mode -eq "--test-loading") { $args += "606849621" }
               $proc = Start-Process publish\RoseTrap.exe -ArgumentList $args -PassThru
-              Start-Sleep -Seconds 6
+              Start-Sleep -Seconds $(if ($mode -eq "--test-loading") { 10 } else { 6 })
               $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
               $g = [System.Drawing.Graphics]::FromImage($bmp)
               $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)

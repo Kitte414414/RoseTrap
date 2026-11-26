@@ -49,6 +49,7 @@ public sealed partial class MainViewModel : ObservableObject
     readonly Installer _installer;
     readonly Launcher _launcher;
     readonly AppSettings _s;
+    readonly HttpClient _http;
     readonly Timer _saveTimer;
 
     public event Action<string>? Toast;
@@ -64,7 +65,7 @@ public sealed partial class MainViewModel : ObservableObject
     {
         _paths = paths;
         _s = settings ?? SettingsStore.Load(paths.SettingsFile);
-        var http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
+        var http = _http = new HttpClient { Timeout = TimeSpan.FromMinutes(5) };
         http.DefaultRequestHeaders.UserAgent.ParseAdd("RoseTrap/0.1");
         _installer = new Installer(http, paths);
         _launcher = new Launcher(_installer, paths);
@@ -164,18 +165,23 @@ public sealed partial class MainViewModel : ObservableObject
     {
         if (IsLaunching) return;
         IsLaunching = true;
+        // Pending gameplay edits are written by the launcher; flush any still waiting on the debounce first.
+        if (_gpSave?.IsEnabled == true) SaveGameplay();
+        var loading = BeginLoading(link);
         try
         {
-            var progress = new Progress<InstallProgress>(p => { LaunchStatus = p.Stage; LaunchProgress = p.Fraction; });
+            var progress = new Progress<InstallProgress>(p => { LaunchStatus = p.Stage; LaunchProgress = p.Fraction; loading?.Report(p); });
             var r = await _launcher.LaunchAsync(_s, link, progress, CancellationToken.None);
             _installed = r.Install;
             OnPropertyChanged(nameof(InstalledVersion));
             OnPropertyChanged(nameof(InstallSource));
+            OnPropertyChanged(nameof(GameplayStatus));
             SaveNow();
             LaunchStatus = "Roblox started";
             foreach (var w in r.Warnings) Toast?.Invoke(w);
             if (r.GamePreset != null) Toast?.Invoke($"Game preset: {r.GamePreset}");
             Toast?.Invoke(r.BasicSettingsWritten || r.Warnings.Count > 0 ? "Roblox started" : "Roblox started · FPS cap applies after its first run");
+            if (loading != null) await FollowLoadingAsync(loading, r);
             if (_s.Launcher.CloseAfterLaunch)
             {
                 if (_launcher.HoldsMultiInstanceLock) MinimizeRequested?.Invoke();
@@ -191,6 +197,7 @@ public sealed partial class MainViewModel : ObservableObject
         }
         finally
         {
+            loading?.Finish();
             IsLaunching = false;
         }
     }

@@ -37,11 +37,15 @@ public partial class App : Application
                 var page = args[pi + 1];
                 bool hover = args.Contains("--expanded");
                 bool crosshair = args.Contains("--test-crosshair");
+                // "--test-loading [placeId]" shows the loading screen held at its last stage.
+                int li = Array.IndexOf(args, "--test-loading");
+                long? loadingPlace = li >= 0 && li + 1 < args.Length && long.TryParse(args[li + 1], out var lp) ? lp : null;
                 window.Opened += (_, _) =>
                 {
                     window.Navigate(page, instant: true);
                     if (hover) window.ShowSidebarExpanded();
                     if (crosshair) vm.Crosshair.Test(TimeSpan.FromSeconds(30));
+                    if (li >= 0) vm.PreviewLoading(loadingPlace, hold: true);
                 };
             }
         }

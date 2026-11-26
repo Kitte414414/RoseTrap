@@ -101,6 +101,7 @@
             </StackPanel>
             <StackPanel Name="NavTop" Spacing="4">
               <Button Classes="nav" Tag="General" Content="General" />
+              <Button Classes="nav" Tag="Gameplay" Content="Gameplay" />
               <Button Classes="nav" Tag="Global" Content="Global" />
               <Button Classes="nav" Tag="FFlags" Content="Fast flags" />
               <Button Classes="nav" Tag="FFlags Settings" Content="Flag settings" />

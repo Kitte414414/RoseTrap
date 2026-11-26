@@ -32,6 +32,7 @@ public partial class MainWindow : Window
     {
         ["Welcome"] = () => new WelcomePage(),
         ["General"] = () => new GeneralPage(),
+        ["Gameplay"] = () => new GameplayPage(),
         ["Global"] = () => new GlobalPage(),
         ["FFlags"] = () => new FlagsPage(),
         ["FFlags Settings"] = () => new FlagSettingsPage(),
@@ -79,6 +80,12 @@ public partial class MainWindow : Window
         vm.CloseRequested += Close;
         vm.MinimizeRequested += () => WindowState = WindowState.Minimized;
         vm.AppearanceChanged += ApplyAppearance;
+        vm.LoadingStarted += session =>
+        {
+            new LoadingWindow { DataContext = session }.Show();
+            // The loading screen takes over; the settings window comes back if RoseTrap stays open.
+            if (!session.IsPreview && vm.CloseAfterLaunch) WindowState = WindowState.Minimized;
+        };
         ApplyAppearance();
     }
 

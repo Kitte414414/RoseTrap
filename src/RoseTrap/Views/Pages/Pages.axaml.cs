@@ -18,6 +18,22 @@ public partial class GlobalPage : UserControl { public GlobalPage() => Initializ
 public partial class PresetPage : UserControl { public PresetPage() => InitializeComponent(); }
 public partial class ShadersPage : UserControl { public ShadersPage() => InitializeComponent(); }
 
+public partial class GameplayPage : UserControl
+{
+    public GameplayPage()
+    {
+        InitializeComponent();
+        ResetButton.Click += (_, _) => (DataContext as MainViewModel)?.ResetGameplay();
+        PreviewLoadingButton.Click += (_, _) => (DataContext as MainViewModel)?.PreviewLoading();
+        // Roblox may have changed its settings while RoseTrap was in the background.
+        AttachedToVisualTree += (_, _) => (DataContext as MainViewModel)?.LoadGameplay();
+        PropertyChanged += (_, e) =>
+        {
+            if (e.Property == IsVisibleProperty && IsVisible) (DataContext as MainViewModel)?.LoadGameplay();
+        };
+    }
+}
+
 public partial class FlagsPage : UserControl
 {
     public FlagsPage()
